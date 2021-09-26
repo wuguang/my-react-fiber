@@ -1,0 +1,91 @@
+<html>
+    <head>
+        <style>
+            html{
+                padding:20px;
+            }
+            #top{
+                margin-bottom: 30px;
+            }
+            #top button{
+                padding:5px 20px;
+                margin-right:20px;
+            }
+
+            #my-input{
+                width:300px;
+                height:40px;
+                line-height: 40px;
+            }
+        </style>
+    </head>
+    <body>
+
+        <div id="top">
+            <button id="start-btn"> start input </button>
+            <button id="end-btn" > disabled input </button>
+        </div>
+        
+        <input id="my-input" disabled="disabled"/> <span id="loading"></span>
+    </body>
+
+    <script src="./jquery.min.js"></script>
+    <script>
+
+        let startBtn = $('#start-btn');
+        let endBtn = $('#end-btn');
+        let myInput = $('#my-input');
+        let loading = $('#loading');
+        startBtn.click(function(){
+
+            //解禁
+            myInput.attr('disabled',false);
+
+            setTimeout(()=>{
+                doMyTask();
+                //window.requestIdleCallback(doMyTaskIdle);
+            },30);
+                       
+        });
+
+        endBtn.click(function() {
+            //解禁
+            myInput.attr('disabled',true);
+        });
+
+        function doMyTask(){
+            let endIndex = 50000;
+            for(let i=0;i<endIndex;i++){
+                console.log(`i = ${i}`);
+            }
+        }
+
+
+        //{didTimeout,timeRemaining,timeout}
+        let endIndex = 50000;
+        let i = 0;
+        function doMyTaskIdle(idleDeadline){
+
+
+            while(idleDeadline.timeRemaining()>0 && i<endIndex){
+                //doMyTask
+                i++;
+                console.log(`i = ${i}`);
+            }
+
+            if(i<endIndex){
+               window.requestIdleCallback(doMyTaskIdle);
+            }
+
+        }
+
+
+
+        //解决方案 window.requestIdleCallback
+        //var handle = window.requestIdleCallback(doMyTask);
+
+
+
+
+    </script>
+</html>
