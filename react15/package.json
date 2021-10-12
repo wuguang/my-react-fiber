@@ -4,11 +4,10 @@
   "description": "my-react-fiber",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node run start",
-    "dev": "node run dev",
-    "build": "node run build",
-    "release": "node run release"
+    "start": "node build/run start",
+    "dev": "node build/run dev",
+    "build": "node build/run build",
+    "release": "node build/run release"
   },
   "repository": {
     "type": "git",

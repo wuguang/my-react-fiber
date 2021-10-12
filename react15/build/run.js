@@ -24,7 +24,6 @@ const ora = require("ora");
 
 class Spinner {
     constructor(text) {
-      this.ora = null;
       this.ora = ora({
         text,
         prefixText: chalk.gray("[my-react-fiber]")
@@ -64,21 +63,17 @@ function runDev(){
 }
 
 function runRelease(){
-    /*
     process.env.NODE_ENV = 'production';
-    const webpackConfig = require('./webpack.config.js');
-    webpack(webpackConfig, function(err, stats) {
-        console.log(`stats = ${stats}`);
-        process.stdout.write(stats.toString({
-            colors: true,
-            modules: false,
-            children: false,
-            chunks: false,
-            chunkModules: false
-        }));
-    });
-    */
-    process.env.NODE_ENV = 'production';
-    execSync('webpack --mode production',{stdio: 'inherit'});
+    //execSync('webpack --mode production',{stdio: 'inherit'});
+    const proWebpackConfig = require('./webpack.config.js');
+    const compiler = webpack(proWebpackConfig);
+        compiler.run((err, stats) => {
+            if (err || stats.hasErrors()) {
+                spinner.fail(`代码打包出错 ${err ? err : stats.toString('errors-only')}`);
+                return;
+            }
+            spinner.succeed('代码打包完成');
+            console.log(chalk.green('编译完成！'));
+        });
 }
 

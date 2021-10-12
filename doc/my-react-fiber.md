@@ -69,7 +69,7 @@ function createElement(type, props, ...children) {
 
 ### react的状态更新，及存在的问题
 
-更新state==>执行render()===>得到虚拟dom(reactElement)===》对比新旧dom节点===>对真实dom 做相应的的【增删改】
+初始化(更新)state==>执行render()===>得到虚拟dom(reactElement)===》对比新旧dom节点===>对真实dom 做相应的的【增删改】
 
 当项目存在大量节点时，对比新旧dom节点的必然消耗大量时间，当时间超过一定阈值时，带来浏览器掉帧，出现卡顿。
 
@@ -84,6 +84,9 @@ FPS（frame per second）是浏览器每秒刷新的次数
 ```
 
 ```
+
+#### react 构建元素
+
 
 
 
