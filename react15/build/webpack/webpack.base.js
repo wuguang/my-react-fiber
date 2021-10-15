@@ -8,7 +8,7 @@ const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 module.exports = {
     context: sourcePath,
     entry: {
-        index: path.join(__dirname, `../src/index.tsx`)
+        index: path.resolve(__dirname, `../../src/index.tsx`)
     },
     output: {
         filename: '[name].js',
@@ -65,7 +65,7 @@ module.exports = {
         new CleanWebpackPlugin(),
         //主页面
         new HtmlWebpackPlugin({
-            template: path.join(__dirname, `../template/index.html`),
+            template: path.resolve(__dirname, `../../template/index.html`),
             filename: `index.html`,
             inject: 'body',
             hash: true, //为静态资源生成hash值

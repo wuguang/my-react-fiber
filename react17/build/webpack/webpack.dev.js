@@ -4,7 +4,7 @@ let outPathDev = path.join(__dirname, `../dist`);
 module.exports = {
     //context: sourcePath,
     mode: 'development',
-    devtool: 'eval-cheap-module-source-map',
+    devtool: 'cheap-module-source-map',
     output: {
         filename: '[name].[hash:8].js',
         chunkFilename: '[name].[hash:8].js',
@@ -19,7 +19,7 @@ module.exports = {
         },
         stats: 'minimal',
         clientLogLevel: 'warning',
-        'open':true
+        open:true
     }
 };
 
