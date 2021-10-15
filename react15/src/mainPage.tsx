@@ -60,7 +60,12 @@ class MainPage extends React.Component{
             <input value={this.state.inputValue}  onChange ={ this.inputChange } />
             <div className="main-content">
                 {
-                    Array(10000).fill(null).map((item,index)=>{
+                    Array(1000).fill(null).map((item,index)=>{
+                        let now = Date.now();
+                        let target = now+10000;
+                        while(now<target){
+                            now++;
+                        }
                         return <Ball key={index} />
                     })
                 }

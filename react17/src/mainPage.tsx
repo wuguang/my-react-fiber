@@ -17,6 +17,11 @@ const  Ball  = ()=>{
     let color = randomHexColor();
     let left = Math.random()*(600 - width)
     let top = Math.random()*(400 - width);
+    let now = Date.now();
+    let target = now+100000;
+    while(now<target){
+        now++;
+    }
     return <div className="ball" style={{width,height:width,borderRadius:radius,background:color,left,top}}> </div>    
 }
 
@@ -29,12 +34,10 @@ const  MainPage  = ()=>{
 
     return <div>
         <input  onChange ={inputChange } />
-
             <div>{inputValue}</div>
-        
             <div className="main-content">
                 {
-                    Array(10000).fill(null).map((item,index)=>{
+                    Array(1000).fill(null).map((item,index)=>{
                         return <Ball key={index} />
                     })
                 }
