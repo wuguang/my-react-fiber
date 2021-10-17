@@ -1,0 +1,101 @@
+<html>
+    <head>
+        <style>
+        #main-content{
+            width:600px;
+            height:400px;
+            border: 3px solid rgb(189, 189, 189);
+            margin-top:50px;
+            position: relative;
+            
+        }
+        #myInput{
+            width:300px;
+            height:40px;
+            line-height: 40px;
+        }
+
+        #main-content .ball{
+            position: absolute;
+        }
+        </style>
+    <head>
+    <body>
+        <h2>similar-Fiber Demo</h2>
+        <input id="myInput"/>
+
+        <div id="main-content">
+
+        </div>
+        <script>
+            let $ = id=> document.querySelector(id);
+            let myInput = $('#myInput');
+            let box = $('#main-content');
+            const registEvent =()=>{
+                myInput.addEventListener('input',handleInput,false);
+            }
+            let taskLen = 0;
+            let allBallStr = '';
+            let taskIsRuning = false;
+
+            const handleInput = ()=>{
+                //taskLen += 100;
+
+                taskLen = 100;
+                allBallStr = '';
+
+                if(!taskIsRuning){
+                    taskIsRuning = true;
+                    requestIdleCallback(doMyTask);
+                }
+               
+            }
+
+            const doMyTask = (deadLine)=>{
+                while(taskLen>0 && deadLine.timeRemaining()>2){
+                    doSingleTask();
+                }
+                //任务完成或者超时
+                if(taskLen > 0){
+                    requestIdleCallback(doMyTask);
+                }else{
+                    taskIsRuning = false;
+                }
+            }
+
+            const doSingleTask = ()=>{
+                let width = Math.random()*100;
+                let radius = width;
+                let color = randomHexColor();
+                let left = Math.random()*(600 - width)
+                let top = Math.random()*(400 - width);
+                let start = Date.now();
+                let target = start + 1;
+                while(start<target){
+                    start = Date.now();
+                }
+                allBallStr += `<div class="ball" style="width:${width}px; height:${width}px; border-radius:${radius}px; background:${color}; left:${left}px; top:${top}px;"> </div>`;
+                taskLen--;
+
+                if(taskLen%100 === 0){
+                    box.innerHTML = allBallStr;
+                    allBallStr = '';
+                }
+            }
+
+            const randomHexColor = ()=>{ //随机生成十六进制颜色
+                 var hex = Math.floor(Math.random() * 16777216).toString(16); //生成ffffff以内16进制数
+                 while (hex.length < 6) { //while循环判断hex位数，少于6位前面加0凑够6位
+                  hex = '0' + hex;
+                 }
+                 return '#' + hex; //返回‘#'开头16进制颜色
+            }
+
+            //第一次初始化
+            handleInput();
+            //执行
+            registEvent();
+
+        </script>
+    </body>
+</html>

@@ -1,11 +1,16 @@
 
-
 import React from 'react';
 import ReactDom  from 'react-dom';
-//import {creatRoot} from 'ReactDomRoot';
+const {unstable_createRoot:createRoot } = ReactDom as any;
+const {
+    ConcurrentMode,
+} = React as any;
+
 import MainPage from './mainPage';
+const root = document.getElementById("react-fiber-root");
 
+//ReactDom.render(<MainPage />,root);
 
-// ReactDOM.render(<App/>, rootEl);   
-let root = document.getElementById('react-fiber-root');
-(ReactDom as any).createRoot(root).render(<MainPage />); 
+createRoot(root).render(<ConcurrentMode>
+    <MainPage />
+</ConcurrentMode>)

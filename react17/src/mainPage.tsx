@@ -1,8 +1,10 @@
 
 
-import React, { useState ,Suspense} from 'react';
+import React, { useState} from 'react';
 import './main.less';
 
+
+//https://codesandbox.io/s/koyz664q35?file=/package.json:172-178
 
 const  Ball  = ()=>{
     const randomHexColor = ()=>{ //随机生成十六进制颜色
@@ -18,9 +20,9 @@ const  Ball  = ()=>{
     let left = Math.random()*(600 - width)
     let top = Math.random()*(400 - width);
     let now = Date.now();
-    let target = now+100000;
+    let target = now + 2;
     while(now<target){
-        now++;
+        now = Date.now();
     }
     return <div className="ball" style={{width,height:width,borderRadius:radius,background:color,left,top}}> </div>    
 }
@@ -32,17 +34,16 @@ const  MainPage  = ()=>{
         setIputValue(Math.random()+'');
     }
 
+    //  <div>{inputValue}</div>
     return <div>
         <input  onChange ={inputChange } />
-            <div>{inputValue}</div>
-            <div className="main-content">
-                {
-                    Array(1000).fill(null).map((item,index)=>{
-                        return <Ball key={index} />
-                    })
-                }
-            </div>
-        
+        <div className="main-content">
+            {
+                Array(100).fill(null).map((item,index)=>{
+                    return <Ball key={index} />
+                })
+            }
+        </div>
     </div>  
 }
 

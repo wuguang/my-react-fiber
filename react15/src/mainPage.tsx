@@ -4,6 +4,7 @@ import React from 'react';
 import './main.less';
 
 
+
 class Ball extends React.Component{
     constructor(props){
         console.log('i am ball~~');
@@ -60,11 +61,11 @@ class MainPage extends React.Component{
             <input value={this.state.inputValue}  onChange ={ this.inputChange } />
             <div className="main-content">
                 {
-                    Array(1000).fill(null).map((item,index)=>{
+                    Array(200).fill(null).map((item,index)=>{
                         let now = Date.now();
-                        let target = now+10000;
+                        let target = now + 5;
                         while(now<target){
-                            now++;
+                            now = Date.now();
                         }
                         return <Ball key={index} />
                     })
