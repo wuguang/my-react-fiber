@@ -3399,7 +3399,7 @@ loglevel@^1.6.8:
   resolved "https://registry.nlark.com/loglevel/download/loglevel-1.7.1.tgz#005fde2f5e6e47068f935ff28573e125ef72f197"
   integrity sha1-AF/eL15uRwaPk1/yhXPhJe9y8Zc=
 
-loose-envify@^1.1.0, loose-envify@^1.4.0:
+loose-envify@^1.1.0:
   version "1.4.0"
   resolved "https://registry.npm.taobao.org/loose-envify/download/loose-envify-1.4.0.tgz#71ee51fa7be4caec1a63839f7e682d8132d30caf"
   integrity sha1-ce5R+nvkyuwaY4OffmgtgTLTDK8=
@@ -4122,15 +4122,6 @@ promise-inflight@^1.0.1:
   resolved "https://registry.nlark.com/promise-inflight/download/promise-inflight-1.0.1.tgz#98472870bf228132fcbdd868129bad12c3c029e3"
   integrity sha1-mEcocL8igTL8vdhoEputEsPAKeM=
 
-prop-types@^15.6.2:
-  version "15.7.2"
-  resolved "https://registry.nlark.com/prop-types/download/prop-types-15.7.2.tgz#52c41e75b8c87e72b9d9360e0206b99dcbffa6c5"
-  integrity sha1-UsQedbjIfnK52TYOAga5ncv/psU=
-  dependencies:
-    loose-envify "^1.4.0"
-    object-assign "^4.1.1"
-    react-is "^16.8.1"
-
 proxy-addr@~2.0.5:
   version "2.0.7"
   resolved "https://registry.nlark.com/proxy-addr/download/proxy-addr-2.0.7.tgz?cache=0&sync_timestamp=1622509170257&other_urls=https%3A%2F%2Fregistry.nlark.com%2Fproxy-addr%2Fdownload%2Fproxy-addr-2.0.7.tgz#f19fe69ceab311eeb94b42e70e8c2070f9ba1025"
@@ -4216,30 +4207,22 @@ raw-body@2.4.0:
     iconv-lite "0.4.24"
     unpipe "1.0.0"
 
-react-dom@16.8.3:
-  version "16.8.3"
-  resolved "https://registry.npmmirror.com/react-dom/download/react-dom-16.8.3.tgz?cache=0&sync_timestamp=1634314782632&other_urls=https%3A%2F%2Fregistry.npmmirror.com%2Freact-dom%2Fdownload%2Freact-dom-16.8.3.tgz#ae236029e66210783ac81999d3015dfc475b9c32"
-  integrity sha1-riNgKeZiEHg6yBmZ0wFd/EdbnDI=
+react-dom@^0.0.0-experimental-930c9e7ee-20211015:
+  version "0.0.0-experimental-930c9e7ee-20211015"
+  resolved "https://registry.npmmirror.com/react-dom/download/react-dom-0.0.0-experimental-930c9e7ee-20211015.tgz?cache=0&sync_timestamp=1634314782632&other_urls=https%3A%2F%2Fregistry.npmmirror.com%2Freact-dom%2Fdownload%2Freact-dom-0.0.0-experimental-930c9e7ee-20211015.tgz#b24782519a9c3c9077d122e68861d65f78f4b03d"
+  integrity sha1-skeCUZqcPJB30SLmiGHWX3j0sD0=
   dependencies:
     loose-envify "^1.1.0"
     object-assign "^4.1.1"
-    prop-types "^15.6.2"
-    scheduler "^0.13.3"
+    scheduler "0.0.0-experimental-930c9e7ee-20211015"
 
-react-is@^16.8.1:
-  version "16.13.1"
-  resolved "https://registry.npmmirror.com/react-is/download/react-is-16.13.1.tgz?cache=0&sync_timestamp=1634314723192&other_urls=https%3A%2F%2Fregistry.npmmirror.com%2Freact-is%2Fdownload%2Freact-is-16.13.1.tgz#789729a4dc36de2999dc156dd6c1d9c18cea56a4"
-  integrity sha1-eJcppNw23imZ3BVt1sHZwYzqVqQ=
-
-react@16.8.3:
-  version "16.8.3"
-  resolved "https://registry.npmmirror.com/react/download/react-16.8.3.tgz?cache=0&sync_timestamp=1634314783188&other_urls=https%3A%2F%2Fregistry.npmmirror.com%2Freact%2Fdownload%2Freact-16.8.3.tgz#c6f988a2ce895375de216edcfaedd6b9a76451d9"
-  integrity sha1-xvmIos6JU3XeIW7c+u3WuadkUdk=
+react@^0.0.0-experimental-930c9e7ee-20211015:
+  version "0.0.0-experimental-930c9e7ee-20211015"
+  resolved "https://registry.npmmirror.com/react/download/react-0.0.0-experimental-930c9e7ee-20211015.tgz?cache=0&sync_timestamp=1634314783188&other_urls=https%3A%2F%2Fregistry.npmmirror.com%2Freact%2Fdownload%2Freact-0.0.0-experimental-930c9e7ee-20211015.tgz#4c080c4e9b290b63ae57e6dfde482e681c605f08"
+  integrity sha1-TAgMTpspC2OuV+bf3kguaBxgXwg=
   dependencies:
     loose-envify "^1.1.0"
     object-assign "^4.1.1"
-    prop-types "^15.6.2"
-    scheduler "^0.13.3"
 
 "readable-stream@1 || 2", readable-stream@^2.0.0, readable-stream@^2.0.1, readable-stream@^2.0.2, readable-stream@^2.1.5, readable-stream@^2.2.2, readable-stream@^2.3.6, readable-stream@~2.3.6:
   version "2.3.7"
@@ -4497,10 +4480,10 @@ sax@^1.2.4:
   resolved "https://registry.nlark.com/sax/download/sax-1.2.4.tgz#2816234e2378bddc4e5354fab5caa895df7100d9"
   integrity sha1-KBYjTiN4vdxOU1T6tcqold9xANk=
 
-scheduler@^0.13.3:
-  version "0.13.6"
-  resolved "https://registry.npmmirror.com/scheduler/download/scheduler-0.13.6.tgz?cache=0&sync_timestamp=1634314723572&other_urls=https%3A%2F%2Fregistry.npmmirror.com%2Fscheduler%2Fdownload%2Fscheduler-0.13.6.tgz#466a4ec332467b31a91b9bf74e5347072e4cd889"
-  integrity sha1-RmpOwzJGezGpG5v3TlNHBy5M2Ik=
+scheduler@0.0.0-experimental-930c9e7ee-20211015:
+  version "0.0.0-experimental-930c9e7ee-20211015"
+  resolved "https://registry.npmmirror.com/scheduler/download/scheduler-0.0.0-experimental-930c9e7ee-20211015.tgz?cache=0&sync_timestamp=1634314723572&other_urls=https%3A%2F%2Fregistry.npmmirror.com%2Fscheduler%2Fdownload%2Fscheduler-0.0.0-experimental-930c9e7ee-20211015.tgz#c962db10b44fca052c6cfdd62eac296601717d18"
+  integrity sha1-yWLbELRPygUsbP3WLqwpZgFxfRg=
   dependencies:
     loose-envify "^1.1.0"
     object-assign "^4.1.1"
