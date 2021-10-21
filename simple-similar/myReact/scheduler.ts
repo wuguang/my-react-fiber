@@ -43,12 +43,14 @@ const reconcileChildren = (currentFiber,newChildren)=>{
     let oldFiber = currentFiber.alternate;
     //老节点的子节点,和当前节点对应,需要对比的
     let oldFiberChild = oldFiber && oldFiber.child;
-    
+
     if(oldFiberChild) oldFiber.firstEffect = oldFiber.lastEffect = oldFiber.nextEffect = null;
+    let prevNewFiber:Fiber;//上一个新的子fiber,缩影>0时用到
+    //此处需要对比
+    //当前的树的children和 上次渲染的fiber链表之间的对比
+    while(newChildIndex<newChildren.length||oldFiberChild){
 
-
-
-
+    }
 }
 
 const updateDOM = (stateNode,oldProps,newProps)=>{
