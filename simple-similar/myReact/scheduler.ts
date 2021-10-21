@@ -1,13 +1,14 @@
 import { TAG_ROOT, ELEMENT_TEXT, TAG_HOST, TAG_TEXT, PLACEMENT,DELETION ,UPDATE ,TAG_CLASS, TAG_FUNCTION_COMPONENT } from "./constants";
-import {setProps} from './utils';
 import {UpdateQueue,Update} from './updateQueue';
 
 //全局Root
-let currentRoot = null;
+let currentRoot:Fiber = null;
 
 //正在构建的一颗树
-let workInProgressRoot:fiber = null;
-let nextUnitOfWork:fiber = null;
+let workInProgressRoot:Fiber = null;
+let nextUnitOfWork:Fiber = null;
+let workInProgressFiber:Fiber = null; //正在工作中的fiber
+let hookIndex = 0;//hooks索引
 
 export const scheduleRoot = (rootFiber)=>{
 
@@ -32,29 +33,100 @@ export const scheduleRoot = (rootFiber)=>{
     nextUnitOfWork = workInProgressRoot;
 }
 
-const updateHostRoot = (currentFiber)=>{
+
+const reconcileChildren = (currentFiber,newChildren)=>{
+    //从开始
+    let newChildIndex = 0;//新子节点的索引
+    //对应的老节点，如果有的化,
+    //和currentFiber对应的oldFiber
+    //至少渲染一次才有
+    let oldFiber = currentFiber.alternate;
+    //老节点的子节点,和当前节点对应,需要对比的
+    let oldFiberChild = oldFiber && oldFiber.child;
     
+    if(oldFiberChild) oldFiber.firstEffect = oldFiber.lastEffect = oldFiber.nextEffect = null;
+
+
+
+
 }
 
+const updateDOM = (stateNode,oldProps,newProps)=>{
+    if(stateNode && stateNode.setAttribute) {
+        setProps(stateNode,oldProps,newProps);
+    }
+}
+
+const createDom = (currentFiber)=>{
+    if(currentFiber.tag === TAG_TEXT) {
+        return document.createTextNode(currentFiber.props.text);
+    }else if(currentFiber.tag === TAG_HOST) {
+        let stateNode = document.createElement(currentFiber.type);
+        updateDOM(stateNode,{},currentFiber.props);
+        return stateNode;
+    }
+}
+
+//构建新节点 Dom节点
+const updateHostRoot = (currentFiber:Fiber)=>{
+    let newChildren = currentFiber.props.children;
+    reconcileChildren(currentFiber,newChildren);//reconcile协调
+}
+
+//不需要协调
 const updateHostText = (currentFiber)=>{
-    
+    //直接创建节点
+    if(!currentFiber.stateNode) {//如果此fiber没有创建DOM节点
+        currentFiber.stateNode = createDom(currentFiber);
+    }
 }
 
 const updateHost = (currentFiber)=>{
-    
+    //直接创建Dom节点
+    if(!currentFiber.stateNode) {
+        currentFiber.stateNode = createDom(currentFiber);
+    }
+    const newChildren = currentFiber.props.children||[];
+    //进入协调阶段
+    reconcileChildren(currentFiber,newChildren);
 }
 
 const updateClassComponent = (currentFiber)=>{
+    if(!currentFiber.stateNode) { //类组件 stateNode是组件的实例
+        //new ClassComponent
+        currentFiber.stateNode = new currentFiber.type(currentFiber.props);
+        //先不管
+        currentFiber.stateNode.internalFiber = currentFiber;
+        //队列挂载
+        currentFiber.updateQueue = new UpdateQueue();//更新队列
+    }
+    //得到
+    currentFiber.stateNode.state = currentFiber.updateQueue.forceUpdate(currentFiber.stateNode.state);
+    //执行render方法
+    //render执行的结果；即每个Component执行的结果,即返回reactElement
+    let newElement = currentFiber.stateNode.render();
 
+    //包裹成数组
+    const newChildren = [newElement];
+    reconcileChildren(currentFiber,newChildren);
 }
 
-const updateFunctionComponent = (currentFiber)=>{
+const updateFunctionComponent = (currentFiber:Fiber)=>{
+    workInProgressFiber = currentFiber;
+    hookIndex = 0;
+    workInProgressFiber.hooks = [];
 
+    const newChildren = [currentFiber.type(currentFiber.props)];
+
+    reconcileChildren(currentFiber,newChildren);
 }
+
+
+
 
 // 构建dom
 // 返回下一个 fiber
-const beginWork = (currentFiber:fiber)=>{
+const beginWork = (currentFiber:Fiber)=>{
     if(currentFiber.tag === TAG_ROOT) {
         updateHostRoot(currentFiber);
     }else if(currentFiber.tag === TAG_TEXT) {
@@ -86,12 +158,13 @@ completeUnitOfWork();
 
 */
 
-const performUnitOfWork:fiber = ()=>{
+const performUnitOfWork = (currentFiber:Fiber):Fiber=>{
     beginWork(currentFiber);
 
     if(currentFiber.child){
         return currentRoot.child;
     }
+
 }
 
 //一个工作循环,每个循环到，remaining()<2时，可以中断，等待下次loop执行
@@ -109,6 +182,52 @@ const workLoop = (deadline)=>{
         //deadline 观察者模式，被观察值提供的
         hasIdleTime = deadline.timeRemaining() < 2?true:false;
     }
+}
+
+const setProps = (dom,oldProps,newProps)=>{
+    for(let key in oldProps){
+        if(key !== 'children') {
+            if(newProps.hasOwnProperty('key')) {//新老都有更新
+                setProp(dom, key,newProps[key]);
+            }else{//老的有新的没有删除
+                dom.removeAttribute(key);
+            }
+        }
+    }
+    for(let key in newProps){
+        if(key !== 'children') {
+            if(!oldProps.hasOwnProperty('key')) {//老的没有新的有，添加
+                setProp(dom, key, newProps[key]);
+            }
+        }
+    }
+}
+
+const setProp = (dom,key,value)=>{
+    if(/^on/.test(key)) {
+        dom[key.toLowerCase()] = value;//没有用合成事件
+    }else if(key === 'style') {
+        if(value){
+            let styleStr = '';
+            for (let styleName in value){
+                if (value.hasOwnProperty(styleName)) {
+                    dom.style[styleName] = value[styleName];
+                    let styleValue = value[styleName];
+                    if(styleName === 'borderRadius'){
+                        styleName = 'border-radius';
+                    }
+                    styleStr += `${styleName}:${styleValue}${typeof styleValue === 'number'?'px':''};`
+                }
+            }
+            dom.setAttribute('style',styleStr);
+        }
+    }else {
+        if(key === 'className'){
+            key = 'class';
+        }
+        dom.setAttribute(key,value);
+    }
+    return dom;
 }
 
 

@@ -12,6 +12,9 @@ function createTextVDom(text) {
 //type 是组件或标签的名字
 
 //可能是ClassComponent/function Component/ html原生标签
+//811 行 function createElement(type, config, children)
+
+//children的数组如何生成的
 const createElement = (type,config,...children)=>{
     return {
         type,

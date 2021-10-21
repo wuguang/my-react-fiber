@@ -1,18 +1,27 @@
-type fiber = {
 
+type Fiber = {
 
+    $$typeof:Symbol;
     tag:Symbol;
+    type:any;
+    //string|Function|((props:any)=>any);
+    //dom节点string名字， classComponent类  ,functionComponent
     stateNode:any;
-    props:{};
+    props:any;
+    
     children?:any[];
 
-    sibling?:fiber;
-    child?:fiber;
-    return?:fiber;
+    sibling?:Fiber;
+    child?:Fiber;
+    return?:Fiber;
 
 
-    firstEffect?:fiber;
-    lastEffect?:fiber;
-    nextEffect?:fiber;
+    firstEffect?:Fiber;
+    lastEffect?:Fiber;
+    nextEffect?:Fiber;
+
+    //组件任务队列
+    updateQueue?:any;
+    hooks?:any[];
 
 }
