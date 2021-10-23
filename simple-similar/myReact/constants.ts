@@ -2,9 +2,10 @@
 
 
 const symbolFor = Symbol.for;
+
+//作为Fiber tag 用的
 //React应用需要一个根Fiber
 export const TAG_ROOT = symbolFor('TAG_ROOT');
-
 
 //文本节点
 export const TAG_TEXT = symbolFor('TAG_TEXT');

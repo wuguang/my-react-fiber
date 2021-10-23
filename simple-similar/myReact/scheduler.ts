@@ -9,8 +9,9 @@ let workInProgressRoot:Fiber = null;
 let nextUnitOfWork:Fiber = null;
 let workInProgressFiber:Fiber = null; //正在工作中的fiber
 let hookIndex = 0;//hooks索引
+let rootFiber:Fiber = null;
 
-export const scheduleRoot = (rootFiber)=>{
+export const scheduleRoot = ()=>{
 
     //一次不存在 currentRoot
     if(!currentRoot) {
@@ -49,6 +50,22 @@ const reconcileChildren = (currentFiber,newChildren)=>{
     //此处需要对比
     //当前的树的children和 上次渲染的fiber链表之间的对比
     while(newChildIndex<newChildren.length||oldFiberChild){
+        let newChild = newChildren[newChildIndex]; //取出新的虚拟DOM节点
+        let newFiber:Fiber = null;
+        //
+        let sameType = oldFiberChild && oldFiberChild.tag === newChild.tag;
+        let tag;
+        if(typeof newChild.type === 'string'){
+            if(newChild.type === 'TEXT'){
+                tag = TAG_TEXT;
+            }else{
+                tag = TAG_HOST;
+            }
+        }else if(typeof newChild.type === 'function'){
+
+        }
+
+
 
     }
 }
@@ -117,9 +134,7 @@ const updateFunctionComponent = (currentFiber:Fiber)=>{
     workInProgressFiber = currentFiber;
     hookIndex = 0;
     workInProgressFiber.hooks = [];
-
     const newChildren = [currentFiber.type(currentFiber.props)];
-
     reconcileChildren(currentFiber,newChildren);
 }
 

@@ -1,4 +1,7 @@
 
+import {UpdateQueue,Update} from './updateQueue';
+import { scheduleRoot, useReducer, useState } from './scheduler';
+
 function createTextVDom(text) {
     return {
         type: 'TEXT',
@@ -31,9 +34,27 @@ const render = (root,component)=>{
 
 }
 
+class Component {
+    props:null;
+    internalFiber:Fiber;
+    isReactComponent = true;
+    constructor(props){
+        this.props = props;
+    }
+
+    setState(payload){
+        let update = new Update(payload);
+        this.internalFiber.updateQueue.enqueueUpdate(update);
+        scheduleRoot();
+    }
+
+    
+}
+
 const React = {
     createElement,
-    render
+    render,
+    Component
 };
 
 
