@@ -3,6 +3,7 @@
 
 const symbolFor = Symbol.for;
 
+
 //作为Fiber tag 用的
 //React应用需要一个根Fiber
 export const TAG_ROOT = symbolFor('TAG_ROOT');
@@ -24,11 +25,9 @@ export const TAG_FUNCTION_COMPONENT = symbolFor('TAG_FUNCTION_COMPONENT');
 
 
 
-
+//文本节点与文本元素的差异？？为什么定义2个
 //表示一个文本元素
 export const ELEMENT_TEXT = symbolFor('ELEMENT_TEXT');
-
-
 
 //新增节点
 export const PLACEMENT = symbolFor('PLACEMENT');

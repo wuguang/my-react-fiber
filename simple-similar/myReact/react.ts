@@ -46,10 +46,12 @@ class Component {
         let update = new Update(payload);
         this.internalFiber.updateQueue.enqueueUpdate(update);
         scheduleRoot();
-    }
-
-    
+    }  
 }
+
+/*
+ELEMENT_TEXT
+*/
 
 const React = {
     createElement,

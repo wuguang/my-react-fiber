@@ -10,7 +10,7 @@ let nextUnitOfWork:Fiber = null;
 let workInProgressFiber:Fiber = null; //正在工作中的fiber
 let hookIndex = 0;//hooks索引
 let rootFiber:Fiber = null;
-
+let deletions:Fiber[] = [];
 export const scheduleRoot = ()=>{
 
     //一次不存在 currentRoot
@@ -33,7 +33,10 @@ export const scheduleRoot = ()=>{
     workInProgressRoot.firstEffect = workInProgressRoot.lastEffect = workInProgressRoot.nextEffect = null;
     nextUnitOfWork = workInProgressRoot;
 }
-
+/*
+调和阶段的核心 
+容器节点和 子节点之间的关系 建立
+*/
 
 const reconcileChildren = (currentFiber,newChildren)=>{
     //从开始
@@ -43,30 +46,111 @@ const reconcileChildren = (currentFiber,newChildren)=>{
     //至少渲染一次才有
     let oldFiber = currentFiber.alternate;
     //老节点的子节点,和当前节点对应,需要对比的
+    //第一个旧的子节点
     let oldFiberChild = oldFiber && oldFiber.child;
-
+    //清除 老节点的effect指向
     if(oldFiberChild) oldFiber.firstEffect = oldFiber.lastEffect = oldFiber.nextEffect = null;
-    let prevNewFiber:Fiber;//上一个新的子fiber,缩影>0时用到
+    let prevSibling:Fiber;//上一个新的子fiber,缩影>0时用到
     //此处需要对比
     //当前的树的children和 上次渲染的fiber链表之间的对比
-    while(newChildIndex<newChildren.length||oldFiberChild){
+    //newChildIndex<newChildren.length 
+    //新旧节点只要有一个存在，即可对比
+    //如果都不存在，则暂停对比
+
+    /*
+    真实的
+    */
+    while(newChildren[newChildIndex]||oldFiberChild){
         let newChild = newChildren[newChildIndex]; //取出新的虚拟DOM节点
         let newFiber:Fiber = null;
-        //
-        let sameType = oldFiberChild && oldFiberChild.tag === newChild.tag;
         let tag;
-        if(typeof newChild.type === 'string'){
-            if(newChild.type === 'TEXT'){
+        if(newChild){
+            if(typeof newChild.type === 'function' && newChild.type.isReactComponent){
+                tag = TAG_CLASS;
+            }else if(typeof newChild.type === 'function'){
+                tag = TAG_FUNCTION_COMPONENT;
+            }else if(newChild.type === ELEMENT_TEXT){
                 tag = TAG_TEXT;
-            }else{
+            }else if(typeof newChild.type === 'string'){
                 tag = TAG_HOST;
             }
-        }else if(typeof newChild.type === 'function'){
-
         }
+        //对比tag, 如果直接对比$$type是否可以，如何可以就不用构建tag了
+        let sameType = oldFiberChild && oldFiberChild.tag === newChild.tag;
+        //对比 相同节点
+        if(sameType){
+            //sameType时;newChild一定存在
+            //为什么有这样的分类????更新节点么??
+            if(oldFiberChild.alternate){
+                //复用老的节点
+                newFiber = oldFiberChild.alternate;
+                //可能有新的属性,所有要更新
+                newFiber.props = newChild.props;
+                newFiber.alternate = oldFiberChild;
+                //为什么都是UPDATE
+                //节点相同需要全部更新么？？？更新tag
+                newFiber.effectTag = UPDATE;
+                //任何child第一建立以后都有updateQueue
+                newFiber.updateQueue = oldFiberChild.updateQueue || new UpdateQueue();
+                newFiber.nextEffect = null;
+            }else{
+                //
+                newFiber = {
+                    tag,
+                    type:oldFiberChild.type,
+                    props:  newChild.props, //一定要新的
+                    stateNode:oldFiberChild.stateNode,
+                    updateQueue:oldFiberChild.updateQueue || new UpdateQueue(),
+                    //父节点
+                    return:currentFiber,
+                    alternate: oldFiberChild,//让新的fiber的alternate指向老的fiber
+                    effectTag:  UPDATE,
+                    nextEffect:null
+                }
+            }
+            //不tong
+        }else{
+            if(newChild){
+                newFiber = {
+                    tag,
+                    $$typeof:newChild.tag,
+                    type:   newChild.type,
+                    props:  newChild.props,
+                    stateNode:  null,//div还没有创建DOM元素
+                    //所有的子节点指向同一个父节点,因为公用一个容器
+                    return: currentFiber,//父Fiber returnFiber
+                    updateQueue: new UpdateQueue(),
+                    effectTag:  PLACEMENT,//副作用标示，render会收集副作用 增加 删除 更新
+                    //可以不加nextEffect
+                    //nextEffect:null,//effect list也是一个单链表 顺序和完成顺序一样 节点可能会少
+                }
+            }
 
-
-
+            //任然挂载在旧的fiber树上的
+            //deletions 数组需要单独处理
+            if(oldFiberChild){
+                oldFiberChild.effectTag = DELETION;
+                deletions.push(oldFiberChild);
+            }
+        }
+        //上一个子节点构建结束,开始构建下一个子节点
+        //旧节点,更新oldFiberChild的指向
+        //可能为空null
+        if(oldFiberChild){
+            //下一个节点指向 oldFiberChild的sibling;
+            oldFiberChild = oldFiberChild.sibling;
+        }
+        //child串起来
+        if(newFiber){
+            if(newChildIndex == 0){
+                currentFiber.child = newFiber;
+            }else{
+                prevSibling.sibling = newFiber; 
+                //sibling
+            }
+            prevSibling = newFiber;
+        }
+        newChildIndex ++;  
     }
 }
 
@@ -177,11 +261,110 @@ completeUnitOfWork();
 
 const performUnitOfWork = (currentFiber:Fiber):Fiber=>{
     beginWork(currentFiber);
-
     if(currentFiber.child){
-        return currentRoot.child;
+        return currentFiber.child;
     }
+    //遇到容器节点
+    while(currentFiber){
+        completeUnitOfWork(currentFiber);
+        if(currentFiber.sibling){
+            return currentFiber.sibling;
+        }
+        //父节点能返回么？
+        //父节点，完善completeUnitOfWork
+        //回溯 父节点,执行completeUnitOfWork,找到sibling
+        currentFiber = currentFiber.return;
+    }
+}
 
+const completeUnitOfWork = (currentFiber:Fiber)=>{
+    //找到父节点
+    let returnFiber = currentFiber.return;
+    //如果没有父节点，那么一定是到达fiberRoot
+    if(returnFiber){
+        //如何节点没有
+        //父级节点,没有firstEffect 和 lastEffect 时 ，是同步没有的
+        if(!returnFiber.firstEffect && !returnFiber.lastEffect){
+            returnFiber.firstEffect = currentFiber.firstEffect;
+            returnFiber.lastEffect = currentFiber.lastEffect;
+        }else{
+            if(currentFiber.lastEffect){
+                //将父节点的fiber 拼凑完整
+                returnFiber.lastEffect.nextEffect = currentFiber.firstEffect;
+                returnFiber.lastEffect = currentFiber.lastEffect;
+            }
+        }
+        //如何父节点有，自己点也有
+        const {effectTag} = currentFiber;
+        if(effectTag){
+            //firstEffect 的构架原则
+            //lastEffect永远执行最后一个有effectTag 的节点
+            if(returnFiber.lastEffect){
+                returnFiber.lastEffect.nextEffect = currentFiber;
+            }else{
+                returnFiber.firstEffect = currentFiber;
+            }
+            returnFiber.lastEffect = currentFiber;
+        }
+    }
+}
+
+//每个循环单元处理 节点
+const commitWork = (currentFiber)=>{
+    //currentFiber要不要判断类型??
+    //不需要再操作中处理
+    if(!currentFiber) return;
+    let returnFiber = currentFiber.return;
+    while(returnFiber.tag !== TAG_HOST && 
+        returnFiber.tag !== TAG_ROOT &&
+        returnFiber.tag !== TAG_TEXT ){
+        returnFiber = returnFiber.return;
+    }
+    //找到真实的父节点
+    let domReturn = returnFiber.stateNode;
+    if(currentFiber.effectTag === PLACEMENT) {//处理新增节点
+        let nextFiber = currentFiber;
+        //这句是否要删除!!!
+        //不需要这句
+        if(nextFiber.tag === TAG_CLASS) {
+            return;
+        }
+        //如果要挂载的节点不是dom节点，比如说是类组件fiber，一直找第一个儿子，直到找到真实DOM
+        while (nextFiber.tag !== TAG_HOST && 
+            nextFiber.tag !== TAG_TEXT ) {
+                nextFiber = currentFiber.child;
+            }
+        domReturn.appendChild(nextFiber.stateNode);
+    }else if(currentFiber.effectTag === DELETION) {//删除节点
+        return commitDeletion(currentFiber,domReturn);
+    }else if(currentFiber.effectTag === UPDATE) {
+        //type 为什么不用tag
+        //文本节点 直接赋值过去就行了!!!
+        if(currentFiber.type === ELEMENT_TEXT) {
+            if(currentFiber.alternate.props.text != currentFiber.props.text){
+                currentFiber.stateNode.textContent = currentFiber.props.text;
+            }
+        }else{
+            updateDOM(currentFiber.stateNode,currentFiber.alternate.props,currentFiber.props)
+        }
+    }
+}
+
+
+const commitDeletion = (currentFiber,domReturn)=>{
+    if(currentFiber.tag == TAG_HOST || currentFiber.tag == TAG_TEXT){
+        domReturn.removeChild(currentFiber.stateNode);
+    }else{
+        //获取到真实的dom节点在进行删除
+        commitDeletion(currentFiber.child,domReturn);
+    }
+}
+
+
+//commit阶段，不会中断,
+//一起完成!！
+const commitRoot = ()=>{
+    deletions.forEach(commitWork);
 }
 
 //一个工作循环,每个循环到，remaining()<2时，可以中断，等待下次loop执行
@@ -197,8 +380,18 @@ const workLoop = (deadline)=>{
         nextUnitOfWork = performUnitOfWork(nextUnitOfWork);
 
         //deadline 观察者模式，被观察值提供的
-        hasIdleTime = deadline.timeRemaining() < 2?true:false;
+        hasIdleTime = deadline.timeRemaining() < 1?true:false;
     }
+    //fiber 树构建完毕
+    //进入提交阶段
+    if(!nextUnitOfWork && workInProgressRoot){
+        commitRoot();
+    }
+
+    //如何任务没执行完
+    //等待下一帧空闲时执行
+    //注册事件
+    window.requestIdleCallback(workLoop,{timeout:200});
 }
 
 const setProps = (dom,oldProps,newProps)=>{

@@ -1,7 +1,7 @@
 
 type Fiber = {
 
-    $$typeof:Symbol;
+    $$typeof?:Symbol;
     tag:Symbol;
     type:any;
     //string|Function|((props:any)=>any);
@@ -23,5 +23,9 @@ type Fiber = {
     //组件任务队列
     updateQueue?:any;
     hooks?:any[];
+
+    effectTag?:symbol;
+    //新旧互指
+    alternate?:Fiber;
 
 }
