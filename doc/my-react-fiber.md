@@ -161,7 +161,9 @@ FPS（frame per second）是浏览器每秒刷新的次数
 ![react_type](./imgs/frameIdle.png)
 
 
-requestIdleCallback是浏览器提供的API，参数是一个回调函数，当下一帧浏览器有空闲了，执行该回调。
+requestIdleCallback是浏览器提供的API，参数是一个回调函数.
+触发时机：当下一帧浏览器有空闲了，执行该回调。
+可选option,{timeout:number},当一直没有空闲时，到了超时时间强制执行传入的回调
 
 window.requestIdleCallback(callback[, options])
 
@@ -186,8 +188,79 @@ window.requestIdleCallback(callback[, options])
 
 ```
 
-#### react 构建元素
+#### demo,示例演示 requestIdleCallback是界面流畅起来的
 
+    -----
+
+#### react对fiber的实现
+
+1、使用时间分片，重写了requestIdleCallback
+2、将虚拟节点树改造成多指针链表
+3、将不可中断的递归遍历改成通过while条件控制可中断的遍历
+
+```javascript
+// 模拟一下这段代码如何 递归遍历的
+<div id="01">
+    <h2 id="02">hello world h2</h2>
+    <div id="03">
+        <p id="04"><span id="05">我是span</span></p>  
+     </div>
+     <ul id="06">
+          <li id="07">我是1</li>
+          <li id="08">我是2</li>
+      </ul>
+      <h3 id="09">hello world h3</h3>
+</div>
+//对树的深度优先遍历
+
+React.createElement("div", {
+  id: "01"
+}, /*#__PURE__*/React.createElement("h2", {
+  id: "02"
+}, "hello world h2"), /*#__PURE__*/React.createElement("div", {
+  id: "03"
+}, /*#__PURE__*/React.createElement("p", {
+  id: "04"
+}, /*#__PURE__*/React.createElement("span", {
+  id: "05"
+}, "\u6211\u662Fspan"))), /*#__PURE__*/React.createElement("ul", {
+  id: "06"
+}, /*#__PURE__*/React.createElement("li", {
+  id: "07"
+}, "\u6211\u662F1"), /*#__PURE__*/React.createElement("li", {
+  id: "08"
+}, "\u6211\u662F2")), /*#__PURE__*/React.createElement("h3", {
+  id: "09"
+}, "hello world h3"));
+
+
+function createTextVDom(text) {
+  return {
+    type: 'TEXT',
+    props: {
+      nodeValue: text,
+      children: []
+    }
+  }
+}
+
+function createElement(type, props, ...children) {
+  return {
+    type,
+    props: {
+      ...props,
+      children: children.map(child => {
+        return typeof child === 'object' ? child: createTextVDom(child)
+      })
+    }
+  }
+}
+
+```
+
+
+
+#### 真实 react 版演示 16.8.3
 https://btraljic.github.io/sync-async-debounced/
 
 

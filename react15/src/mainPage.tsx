@@ -30,7 +30,11 @@ class Ball extends React.Component{
         let color = this.randomHexColor();
         let left = Math.random()*(600 - width)
         let top = Math.random()*(400 - width)
-        //let opacity = Math.random();
+        let start = performance.now();
+        let target = start + 1;
+        while(start<target){
+            start = performance.now();
+        }
         return <div className="ball" style={{width,height:width,borderRadius:radius,background:color,left,top}}>
         </div>        
     }
@@ -58,15 +62,10 @@ class MainPage extends React.Component{
 
     render(){
         return <div>
-            <input value={this.state.inputValue}  onChange ={ this.inputChange } />
+            <input className="my-input" value={this.state.inputValue}  onChange ={ this.inputChange } />
             <div className="main-content">
                 {
-                    Array(200).fill(null).map((item,index)=>{
-                        let now = Date.now();
-                        let target = now + 5;
-                        while(now<target){
-                            now = Date.now();
-                        }
+                    Array(100).fill(null).map((item,index)=>{
                         return <Ball key={index} />
                     })
                 }
