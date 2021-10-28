@@ -34,33 +34,65 @@
             const registEvent =()=>{
                 myInput.addEventListener('input',handleInput,false);
             }
+
+            class TaskQueue{
+                task = [];
+                constructor(){ 
+
+                }
+
+                addTask(addTaskNum){
+                    this.task =  this.task.concat(Array(addTaskNum).fill('doit'));
+                }
+
+                //完成一条任务
+                completeOneTask(){
+                    //先进先出，从前面删除一个
+                    //arrary模拟 效率低下
+                    this.task.shift();
+                }
+
+                //是否有剩余
+                hasTasks(){
+                    return this.task.length>0?true:false;
+                }
+
+                getLength(){
+                    return this.task.length;
+                }
+
+            }
+
+
+
             let taskLen = 0;
             let allBallStr = '';
             let taskIsRuning = false;
-
+            let howManyForOnce = 100;
+            let taskQueue = new TaskQueue();
+            
             const handleInput = ()=>{
-                //taskLen += 100;
-
-                taskLen = 100;
-                allBallStr = '';
-
-                if(!taskIsRuning){
-                    taskIsRuning = true;
-                    requestIdleCallback(doMyTask);
-                }
-               
+                //只添加任务
+                //不做任务执行
+                taskQueue.addTask(howManyForOnce);
             }
 
             const doMyTask = (deadLine)=>{
-                while(taskLen>0 && deadLine.timeRemaining()>2){
+                //是否有任务
+                //是否超时
+                while(taskQueue.hasTasks() && deadLine.timeRemaining()>2){
                     doSingleTask();
                 }
+
+                /*
                 //任务完成或者超时
-                if(taskLen > 0){
+                if(taskQueue.hasTasks()){
                     requestIdleCallback(doMyTask);
-                }else{
-                    taskIsRuning = false;
                 }
+                */
+
+                //有没有任务都执行一次
+                requestIdleCallback(doMyTask);
             }
 
             const doSingleTask = ()=>{
@@ -75,9 +107,11 @@
                     start = Date.now();
                 }
                 allBallStr += `<div class="ball" style="width:${width}px; height:${width}px; border-radius:${radius}px; background:${color}; left:${left}px; top:${top}px;"> </div>`;
-                taskLen--;
+                //完成一条任务
+                taskQueue.completeOneTask();
 
-                if(taskLen%100 === 0){
+                if(taskQueue.getLength()%howManyForOnce === 0){
+                    //没100的整数次更新一次界面
                     box.innerHTML = allBallStr;
                     allBallStr = '';
                 }
@@ -90,6 +124,8 @@
                  }
                  return '#' + hex; //返回‘#'开头16进制颜色
             }
+
+            requestIdleCallback(doMyTask);
 
             //第一次初始化
             handleInput();
