@@ -11,4 +11,6 @@ const root = document.getElementById("react-fiber-root");
 
 //ReactDom.render(<MainPage />,root);
 
-createRoot(root).render(<MainPage />)
+createRoot(root).render(<ConcurrentMode>
+    <MainPage />
+</ConcurrentMode>);

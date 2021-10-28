@@ -36,8 +36,7 @@
                 myInput.addEventListener('input',handleInput,false);
             }
             
-            const  handleInput = ()=>{
-                //let startTime = Date.now();
+            const  handleInput = ()=>{ 
                 let allBall = ''
                 for(let i=0; i<100;i++){
                     let width = Math.random()*100;
@@ -45,15 +44,16 @@
                     let color = randomHexColor();
                     let left = Math.random()*(600 - width)
                     let top = Math.random()*(400 - width);
-                    let start = Date.now();
+                    let start = performance.now();
                     let target = start + 1;
                     
                     while(start<target){
-                        start = Date.now();
+                        start = performance.now();
                     }
                     
                     allBall += `<div class="ball" style="width:${width}px; height:${width}px; border-radius:${radius}px; background:${color}; left:${left}px; top:${top}px;"> </div>`  
                 }
+                
                 box.innerHTML = allBall;
                 //console.log(`oneRenderTime = ${Date.now() - startTime}`);
             }

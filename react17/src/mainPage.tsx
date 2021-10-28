@@ -1,6 +1,8 @@
 
 
 import React, { useState} from 'react';
+import { unstable_scheduleCallback } from "scheduler";
+
 import './main.less';
 
 //sandbox demo
@@ -27,24 +29,37 @@ const  Ball  = ()=>{
     return <div className="ball" style={{width,height:width,borderRadius:radius,background:color,left,top}}> </div>    
 }
 
-const  MainPage  = ()=>{
-    const [inputValue,setIputValue] = useState('');
-    const inputChange = (e)=>{
-        //let value = e.target.value;
-        setIputValue(Math.random()+'');
+class  MainPage extends React.Component{
+    state = {
+        inputValue:'',
+
+    }
+    constructor(props){
+        super(props);
+    }
+
+    inputChange = (e)=>{
+        unstable_scheduleCallback(5000,()=>{
+            this.setState(Math.random()+'')
+        });
+        //setIputValue(Math.random()+'');
     }
 
     //  <div>{inputValue}</div>
-    return <div>
-        <input  onChange ={inputChange } />
-        <div className="main-content">
-            {
-                Array(100).fill(null).map((item,index)=>{
-                    return <Ball key={index} />
-                })
-            }
-        </div>
-    </div>  
+    
+    render(){
+        return <div>
+            <input  onChange ={this.inputChange } />
+            <div className="main-content">
+                {
+                    Array(100).fill(null).map((item,index)=>{
+                        return <Ball key={index} />
+                    })
+                }
+            </div>
+        </div> 
+    }
+ 
 }
 
 
