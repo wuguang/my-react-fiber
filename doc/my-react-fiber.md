@@ -211,67 +211,10 @@ window.requestIdleCallback(callback[, options])
       </ul>
       <h3 id="09">hello world h3</h3>
 </div>
-
-let myElementData = {"type":"div","props":{"id":"01","children":[{"type":"h2","props":{"id":"02","children":[{"type":"TEXT","props":{"nodeValue":"hello world h2","children":[]}}]}},{"type":"div","props":{"id":"03","children":[{"type":"p","props":{"id":"04","children":[{"type":"span","props":{"id":"05","children":[{"type":"TEXT","props":{"nodeValue":"我是span","children":[]}}]}}]}}]}},{"type":"ul","props":{"id":"06","children":[{"type":"li","props":{"id":"07","children":[{"type":"TEXT","props":{"nodeValue":"我是1","children":[]}}]}},{"type":"li","props":{"id":"08","children":[{"type":"TEXT","props":{"nodeValue":"我是2","children":[]}}]}}]}},{"type":"h3","props":{"id":"09","children":[{"type":"TEXT","props":{"nodeValue":"hello world h3","children":[]}}]}}]}};
-
-//实现一个简单版的深度优先，递归遍历
-
-
-//对树的深度优先遍历
-let React = {
-    createElement, 
-    createTextVDom
-}
-
-let myElement = React.createElement("div", {
-  id: "01"
-}, /*#__PURE__*/React.createElement("h2", {
-  id: "02"
-}, "hello world h2"), /*#__PURE__*/React.createElement("div", {
-  id: "03"
-}, /*#__PURE__*/React.createElement("p", {
-  id: "04"
-}, /*#__PURE__*/React.createElement("span", {
-  id: "05"
-}, "\u6211\u662Fspan"))), /*#__PURE__*/React.createElement("ul", {
-  id: "06"
-}, /*#__PURE__*/React.createElement("li", {
-  id: "07"
-}, "\u6211\u662F1"), /*#__PURE__*/React.createElement("li", {
-  id: "08"
-}, "\u6211\u662F2")), /*#__PURE__*/React.createElement("h3", {
-  id: "09"
-}, "hello world h3"));
-
-
-function createTextVDom(text) {
-  return {
-    type: 'TEXT',
-    props: {
-      nodeValue: text,
-      children: []
-    }
-  }
-}
-
-function createElement(type, props, ...children) {
-  return {
-    type,
-    props: {
-      ...props,
-      children: children.map(child => {
-        return typeof child === 'object' ? child: createTextVDom(child)
-      })
-    }
-  }
-}
-
 ```
 #### 实现一个简单版的深度优先，递归遍历
     
 ```javascript
-
-
 
 let myElementData = {"type":"div","props":{"id":"01","children":[{"type":"h2","props":{"id":"02","children":[{"type":"TEXT","props":{"nodeValue":"hello world h2","children":[]}}]}},{"type":"div","props":{"id":"03","children":[{"type":"p","props":{"id":"04","children":[{"type":"span","props":{"id":"05","children":[{"type":"TEXT","props":{"nodeValue":"我是span","children":[]}}]}}]}}]}},{"type":"ul","props":{"id":"06","children":[{"type":"li","props":{"id":"07","children":[{"type":"TEXT","props":{"nodeValue":"我是1","children":[]}}]}},{"type":"li","props":{"id":"08","children":[{"type":"TEXT","props":{"nodeValue":"我是2","children":[]}}]}}]}},{"type":"h3","props":{"id":"09","children":[{"type":"TEXT","props":{"nodeValue":"hello world h3","children":[]}}]}}]}};
 
@@ -281,8 +224,6 @@ let myElementData = {"type":"div","props":{"id":"01","children":[{"type":"h2","p
 
 
 dfsForElementData(myElementData);
-
-
 
 
 ```
@@ -296,11 +237,20 @@ dfsForElementData(myElementData);
 })()
 ```
 
-    要求
+要求
 
-    1、每个节点进入时输出 ${id}--beginWork, 结束时输出${id}--completeWork. id 不存在的情况用nodeValue替代
+    1、每个节点进入时输出 ${id}--beginWork,暂停10ms(死循环10ms), 结束时输出${id}，--completeWork. (id不存在的情况用nodeValue替代)
 
     2、子节点任务全部完成，容器节点才算完成任务
+
+
+#### 体会递归遍历的缺点
+一次性完成，没中断，如果节点很长或节点任务很耗时，将不可避免的阻塞主线程。
+
+可能有的改进方案：
+
+    1、 web worker  
+    2、 时间分片，在浏览器空闲的时候执行任务
 
 
 
