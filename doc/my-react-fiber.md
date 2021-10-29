@@ -211,9 +211,19 @@ window.requestIdleCallback(callback[, options])
       </ul>
       <h3 id="09">hello world h3</h3>
 </div>
-//对树的深度优先遍历
 
-React.createElement("div", {
+let myElementData = {"type":"div","props":{"id":"01","children":[{"type":"h2","props":{"id":"02","children":[{"type":"TEXT","props":{"nodeValue":"hello world h2","children":[]}}]}},{"type":"div","props":{"id":"03","children":[{"type":"p","props":{"id":"04","children":[{"type":"span","props":{"id":"05","children":[{"type":"TEXT","props":{"nodeValue":"我是span","children":[]}}]}}]}}]}},{"type":"ul","props":{"id":"06","children":[{"type":"li","props":{"id":"07","children":[{"type":"TEXT","props":{"nodeValue":"我是1","children":[]}}]}},{"type":"li","props":{"id":"08","children":[{"type":"TEXT","props":{"nodeValue":"我是2","children":[]}}]}}]}},{"type":"h3","props":{"id":"09","children":[{"type":"TEXT","props":{"nodeValue":"hello world h3","children":[]}}]}}]}};
+
+//实现一个简单版的深度优先，递归遍历
+
+
+//对树的深度优先遍历
+let React = {
+    createElement, 
+    createTextVDom
+}
+
+let myElement = React.createElement("div", {
   id: "01"
 }, /*#__PURE__*/React.createElement("h2", {
   id: "02"
@@ -257,6 +267,43 @@ function createElement(type, props, ...children) {
 }
 
 ```
+#### 实现一个简单版的深度优先，递归遍历
+    
+```javascript
+
+
+
+let myElementData = {"type":"div","props":{"id":"01","children":[{"type":"h2","props":{"id":"02","children":[{"type":"TEXT","props":{"nodeValue":"hello world h2","children":[]}}]}},{"type":"div","props":{"id":"03","children":[{"type":"p","props":{"id":"04","children":[{"type":"span","props":{"id":"05","children":[{"type":"TEXT","props":{"nodeValue":"我是span","children":[]}}]}}]}}]}},{"type":"ul","props":{"id":"06","children":[{"type":"li","props":{"id":"07","children":[{"type":"TEXT","props":{"nodeValue":"我是1","children":[]}}]}},{"type":"li","props":{"id":"08","children":[{"type":"TEXT","props":{"nodeValue":"我是2","children":[]}}]}}]}},{"type":"h3","props":{"id":"09","children":[{"type":"TEXT","props":{"nodeValue":"hello world h3","children":[]}}]}}]}};
+
+
+//每个节点 进入时 输出 beginWork , 结束时输出 completeWork
+//子节点任务全部完成，容器节点才算完成任务
+
+
+dfsForElementData(myElementData);
+
+
+
+
+```
+这时需要现场找人是现实 dfsForElementData 函数
+```javascript
+//随机找人代码
+(()=>{
+    let nameList = ['xiao','ming','dang'];
+    let luckyIndex = Math.floor(Math.random()*nameList.length);
+    console.log(nameList[luckyIndex]);
+})()
+```
+
+    要求
+
+    1、每个节点进入时输出 ${id}--beginWork, 结束时输出${id}--completeWork. id 不存在的情况用nodeValue替代
+
+    2、子节点任务全部完成，容器节点才算完成任务
+
+
+
 
 
 
