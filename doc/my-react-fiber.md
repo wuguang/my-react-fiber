@@ -218,13 +218,10 @@ window.requestIdleCallback(callback[, options])
 
 let myElementData = {"type":"div","props":{"id":"01","children":[{"type":"h2","props":{"id":"02","children":[{"type":"TEXT","props":{"nodeValue":"hello world h2","children":[]}}]}},{"type":"div","props":{"id":"03","children":[{"type":"p","props":{"id":"04","children":[{"type":"span","props":{"id":"05","children":[{"type":"TEXT","props":{"nodeValue":"我是span","children":[]}}]}}]}}]}},{"type":"ul","props":{"id":"06","children":[{"type":"li","props":{"id":"07","children":[{"type":"TEXT","props":{"nodeValue":"我是1","children":[]}}]}},{"type":"li","props":{"id":"08","children":[{"type":"TEXT","props":{"nodeValue":"我是2","children":[]}}]}}]}},{"type":"h3","props":{"id":"09","children":[{"type":"TEXT","props":{"nodeValue":"hello world h3","children":[]}}]}}]}};
 
-
 //每个节点 进入时 输出 beginWork , 结束时输出 completeWork
 //子节点任务全部完成，容器节点才算完成任务
 
-
 dfsForElementData(myElementData);
-
 
 ```
 这时需要现场找人是现实 dfsForElementData 函数
@@ -238,22 +235,41 @@ dfsForElementData(myElementData);
 ```
 
 要求
-
     1、每个节点进入时输出 ${id}--beginWork,暂停10ms(死循环10ms), 结束时输出${id}，--completeWork. (id不存在的情况用nodeValue替代)
-
     2、子节点任务全部完成，容器节点才算完成任务
-
 
 #### 体会递归遍历的缺点
 一次性完成，没中断，如果节点很长或节点任务很耗时，将不可避免的阻塞主线程。
 
 可能有的改进方案：
 
-    1、 web worker  
-    2、 时间分片，在浏览器空闲的时候执行任务
+    0、优化算法算法，尽可能的压缩遍历执行时间
+    1、web worker  
+    2、时间分片，将任务分拆，满足用户体验优先的前提下，合理安排执行顺序
+
+筛选方案理由:
+
+    0、永远不能低估过使用者的想象力，任何情况都不能保证，执行时间能压缩到足够小,方案0舍弃
+    1、fiber,虽然在构建或对比过程中，没在【浏览器页面】插入或更新dom节点，但在内存里有处理dom的动作，webWorker 不支持
+    2、时间分片，合理安排任务优先级，似乎是不错的选择
+
+
+#### 实现一个简单版时间分片遍历
 
 
 
+
+
+
+
+
+    
+
+
+
+
+
+    
 
 
 

@@ -1,0 +1,52 @@
+<html>
+    <head>
+
+    </head>
+    <body>
+        <div id="react-fiber-root"></div>
+    </body>
+
+    <script src="./react/umd/react.development.js"> </script>    
+    <script src="./react-dom/umd/react-dom.development.js"> </script>    
+
+    <script type="text/javascript">
+        //process.env.NODE_ENV = 'development';
+
+        const ReactDom = window.ReactDom;
+        const React = window.React;
+        const { useEffect , useState , useRef , useMemo  } = React;
+
+        //import ReactDom  from './react-dom/index.js';
+        //import React,{ useEffect , useState , useRef , useMemo  } from './react/index.js'
+
+        const root = document.getElementById("react-fiber-root");
+
+        function SetTimer03(){
+
+            const [ number , setNumber ] = useState(0)
+            const DivDemo = useMemo(() => React.createElement("div", null, " hello , i am useMemo "),[])
+            const curRef  = useRef(null)
+
+            useEffect(()=>{
+            console.log(curRef.current)
+            },[]);
+
+            const contentJsx = React.createElement("div", {
+                ref: curRef
+            }, "hello,world ", number, DivDemo, React.createElement("button", {
+                onClick: () => setNumber(number + 1)
+            }, "number++"));
+
+            return contentJsx;
+        }
+
+
+
+        const setTimer03Jsx = React.createElement(React.Fragment, null, React.createElement(SetTimer03, null));
+
+        ReactDom.render(setTimer03Jsx,root);
+
+    </script>
+    
+    
+</html>
