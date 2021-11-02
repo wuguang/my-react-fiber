@@ -256,6 +256,100 @@ dfsForElementData(myElementData);
 
 #### 实现一个简单版时间分片遍历
 
+```javascript
+//随机找人协助实现代码,加深印象
+(()=>{
+    let nameList = ['xiao','ming','dang'];
+    let luckyIndex = Math.floor(Math.random()*nameList.length);
+    console.log(nameList[luckyIndex]);
+})()
+```
+
+通过递归时间分片体会下面2张图的意义：
+
+![idle](./imgs/idle.png)
+
+#### fiber的定义
+上文，递归改链表，同步变合作（忙里偷闲）的策略叫做 Cooperative Scheduling（合作式调度）
+
+以下表述来自：https://juejin.cn/post/6844903975112671239
+
+把渲染前的计算过程拆分成多个子任务，每次只做一小部分，做完看是否还有剩余时间，如果有继续下一个任务；如果没有，挂起当前任务，将时间控制权交给主线程，等主线程不忙的时候在继续执行。 这种策略叫做 Cooperative Scheduling（合作式调度），操作系统常用任务调度策略之一。
+
+![idle](./imgs/compare.png)
+
+Cooperative Scheduling的react实现基础就是fiber，fiber在react里是一种架构设计，用来解决界面可能存在的阻塞，任务优先级等问题。
+
+fiber有是一个数据结构，react组件构建的最小单位，其结构如下：
+
+```typescript
+
+type Fiber = {
+    //组件/节点 类型
+    $$typeof?:Symbol;
+    tag:Symbol;
+
+    //string|Function|((props:any)=>any);
+    //dom节点string名字， classComponent类  ,functionComponent
+    type:any;
+
+    //dom 节点 ，或 class实例或function执行结果
+    stateNode:any;
+
+    props:any;
+    children?:any[];
+
+    //链接指针
+    sibling?:Fiber;
+    child?:Fiber;
+    return?:Fiber;
+
+    //effect指针
+    firstEffect?:Fiber;
+    lastEffect?:Fiber;
+    nextEffect?:Fiber;
+    effectTag?:symbol;
+
+    //组件任务队列
+    updateQueue?:any;
+    hooks?:any[];
+
+    //新旧互指
+    alternate?:Fiber;
+
+}
+
+```
+
+#### fiber构建过程
+
+##### 双缓冲
+##### 调和算法
+##### commit 
+
+```javascript
+//专业术语对照
+let nextUnitOfWork = null; 
+let workInProgressRoot = null;
+let workInProgressFiber = null; 
+let currentRoot = null; 
+let deletions = []; 
+```
+
+
+参考版权
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

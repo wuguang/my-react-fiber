@@ -147,7 +147,6 @@ function dfsForElementData(myElementData){
 function timeSliceForElementData(myElementData){
 
     let workInProgressNode =  myElementData;
-
     const hasTask = ()=>{
         return workInProgressNode?true:false;
     }
@@ -199,9 +198,7 @@ function timeSliceForElementData(myElementData){
 
     //执行一个节点,保持和react名名一致
     const performUnitOfWork = ()=>{
-
         console.log(`performUnitOfWork ---start`);
-
         beginWork();
         //-----这里怎么写是关键
         //有子节点
@@ -229,7 +226,7 @@ function timeSliceForElementData(myElementData){
             */
 
             //==>
-            if(workInProgressNode){
+            while(workInProgressNode){
                 completeWork();
                 if(workInProgressNode.sibling){
                     return workInProgressNode.sibling;
@@ -241,7 +238,6 @@ function timeSliceForElementData(myElementData){
 
     //executeMyTask
     const wookLoop = (deadline)=>{
-        
         while(hasTask() && deadline.timeRemaining()>5){
             //返回下一个要执行的 任务/节点/单元任务
             //一个工作单元做完了，返回
