@@ -13,12 +13,13 @@ import SetTimer07 from './components/setTimer07';
 const root = document.getElementById("react-fiber-root");
 
 ReactDom.render(<>
-    <SetTimer />
-    <SetTimer02 />
     <SetTimer07 />
 </>,root);
 
 /*
+    <SetTimer />
+    <SetTimer02 />
+
 createRoot(root).render(<ConcurrentMode>
     <MainPage />
     <SetTimer />
