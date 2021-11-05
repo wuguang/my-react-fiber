@@ -218,13 +218,10 @@ window.requestIdleCallback(callback[, options])
 
 let myElementData = {"type":"div","props":{"id":"01","children":[{"type":"h2","props":{"id":"02","children":[{"type":"TEXT","props":{"nodeValue":"hello world h2","children":[]}}]}},{"type":"div","props":{"id":"03","children":[{"type":"p","props":{"id":"04","children":[{"type":"span","props":{"id":"05","children":[{"type":"TEXT","props":{"nodeValue":"我是span","children":[]}}]}}]}}]}},{"type":"ul","props":{"id":"06","children":[{"type":"li","props":{"id":"07","children":[{"type":"TEXT","props":{"nodeValue":"我是1","children":[]}}]}},{"type":"li","props":{"id":"08","children":[{"type":"TEXT","props":{"nodeValue":"我是2","children":[]}}]}}]}},{"type":"h3","props":{"id":"09","children":[{"type":"TEXT","props":{"nodeValue":"hello world h3","children":[]}}]}}]}};
 
-
 //每个节点 进入时 输出 beginWork , 结束时输出 completeWork
 //子节点任务全部完成，容器节点才算完成任务
 
-
 dfsForElementData(myElementData);
-
 
 ```
 这时需要现场找人是现实 dfsForElementData 函数
@@ -238,22 +235,135 @@ dfsForElementData(myElementData);
 ```
 
 要求
-
     1、每个节点进入时输出 ${id}--beginWork,暂停10ms(死循环10ms), 结束时输出${id}，--completeWork. (id不存在的情况用nodeValue替代)
-
     2、子节点任务全部完成，容器节点才算完成任务
-
 
 #### 体会递归遍历的缺点
 一次性完成，没中断，如果节点很长或节点任务很耗时，将不可避免的阻塞主线程。
 
 可能有的改进方案：
 
-    1、 web worker  
-    2、 时间分片，在浏览器空闲的时候执行任务
+    0、优化算法算法，尽可能的压缩遍历执行时间
+    1、web worker  
+    2、时间分片，将任务分拆，满足用户体验优先的前提下，合理安排执行顺序
+
+筛选方案理由:
+
+    0、永远不能低估过使用者的想象力，任何情况都不能保证，执行时间能压缩到足够小,方案0舍弃
+    1、fiber,虽然在构建或对比过程中，没在【浏览器页面】插入或更新dom节点，但在内存里有处理dom的动作，webWorker 不支持
+    2、时间分片，合理安排任务优先级，似乎是不错的选择
+
+
+#### 实现一个简单版时间分片遍历
+
+```javascript
+//随机找人协助实现代码,加深印象
+(()=>{
+    let nameList = ['xiao','ming','dang'];
+    let luckyIndex = Math.floor(Math.random()*nameList.length);
+    console.log(nameList[luckyIndex]);
+})()
+```
+
+通过递归时间分片体会下面2张图的意义：
+
+![idle](./imgs/idle.png)
+
+#### fiber的定义
+上文，递归改链表，同步变合作（忙里偷闲）的策略叫做 Cooperative Scheduling（合作式调度）
+
+以下表述来自：https://juejin.cn/post/6844903975112671239
+
+把渲染前的计算过程拆分成多个子任务，每次只做一小部分，做完看是否还有剩余时间，如果有继续下一个任务；如果没有，挂起当前任务，将时间控制权交给主线程，等主线程不忙的时候在继续执行。 这种策略叫做 Cooperative Scheduling（合作式调度），操作系统常用任务调度策略之一。
+
+![idle](./imgs/compare.png)
+
+Cooperative Scheduling的react实现基础就是fiber，fiber在react里是一种架构设计，用来解决界面可能存在的阻塞，任务优先级等问题。
+
+fiber有是一个数据结构，react组件构建的最小单位，其结构如下：
+
+```typescript
+
+type Fiber = {
+    //组件/节点 类型
+    $$typeof?:Symbol;
+    tag:Symbol;
+
+    //string|Function|((props:any)=>any);
+    //dom节点string名字， classComponent类  ,functionComponent
+    type:any;
+
+    //dom 节点 ，或 class实例或function执行结果
+    stateNode:any;
+
+    props:any;
+    children?:any[];
+
+    //链接指针
+    sibling?:Fiber;
+    child?:Fiber;
+    return?:Fiber;
+
+    //effect指针
+    firstEffect?:Fiber;
+    lastEffect?:Fiber;
+    nextEffect?:Fiber;
+    effectTag?:symbol;
+
+    //组件任务队列
+    updateQueue?:any;
+    hooks?:any[];
+
+    //新旧互指
+    alternate?:Fiber;
+
+}
+
+```
+
+#### fiber构建过程
+
+##### 双缓冲
+##### 调和算法
+##### commit 
+
+```javascript
+//专业术语对照
+let nextUnitOfWork = null; 
+let workInProgressRoot = null;
+let workInProgressFiber = null; 
+let currentRoot = null; 
+let deletions = []; 
+```
+
+
+参考版权
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+    
 
 
 
