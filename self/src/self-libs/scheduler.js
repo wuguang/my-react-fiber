@@ -240,7 +240,7 @@ function reconcileSingleElement(returnFiber,currentFirstChild,newChild){
     //一个已知单节点对一个未知类型的 比较
     //简单粗暴法,类型是否一致，属性
 
-    let tag = getTagFromElement(newChild);
+
     let newFiber = null;
     //是dom节点
     if(currentFirstChild && currentFirstChild.type === newChild.type){
@@ -249,23 +249,44 @@ function reconcileSingleElement(returnFiber,currentFirstChild,newChild){
         //fiber 复用
         
         if(currentFirstChild.alternate){
+            let effectTag = null;
+            if(typeof newChild.type === 'string'){
+                effectTag = diffProperties(oldChildFiber,newChild)?null:UPDATE;
+            } 
             newFiber = currentFirstChild.alternate;
-
-            newFiber = oldFiber.alternate;        
-            newFiber.alternate = oldFiber;
-            newFiber.effectTag = JSON.stringify({...oldFiber.props,children:null}) === JSON.stringify({...newChild.props,children:null}) ? null:UPDATE;
+            newFiber.alternate = currentFirstChild;
+            newFiber.effectTag = effectTag;
             newFiber.props = newChild.props;
-            newFiber.updateQueue = oldFiber.updateQueue;
+            newFiber.updateQueue = currentFirstChild.updateQueue;
             newFiber.nextEffect = newFiber.firstEffect = newFiber.lastEffect = null;
         }else{
             //第二次
             //fiber对象需新建
             newFiber = getFiberFromOldFiber(currentFirstChild,newChild);
         }
+
+        //删除其他 oldFibers 如果有的话
+        deleteRemainingChildren(returnFiber.alternate, currentFirstChild);
     }else {
         //第一次更新
         //或新建fiber
         newFiber = createFiber(returnFiber,newChild);
+    }
+}
+
+
+function deleteRemainingChildren(returnFiber,exceptOne){
+    let firstChild = returnFiber.child;
+    //排除这个exceptOne
+    if(firstChild !== exceptOne){
+        deletions.push(firstChild);
+    }
+    let siblingFiber = firstChild.siblingFiber;
+    while(siblingFiber){
+        if(siblingFiber !== exceptOne){
+            deletions.push(siblingFiber);
+        }
+        siblingFiber = siblingFiber.sibling;
     }
 }
 
@@ -302,13 +323,14 @@ function getFiberFromOldFiber(oldChildFiber,newChild){
         updateQueue: oldChildFiber.updateQueue,
         return: oldChildFiber.return,//父Fiber returnFiber
         alternate: oldChildFiber,//让新的fiber的alternate指向老的fiber
-        effectTag:  JSON.stringify({...oldChildFiber.props,children:null}) === JSON.stringify({...newChild.props,children:null}) ? null:UPDATE,
+        effectTag:  effectTag,
         //副作用标示，render会收集副作用 增加 删除 更新
         nextEffect:null,//effect list也是一个单链表 顺序和完成顺序一样 节点可能会少
     }
 }
 
 function createFiber(returnFiber,newChild){
+    let tag = getTagFromElement(newChild);
     return  {
         tag,
         type:   newChild.type,
