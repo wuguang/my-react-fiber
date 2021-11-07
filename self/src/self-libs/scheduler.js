@@ -150,7 +150,7 @@ function updateFunctionComponent(currentFiber) {
     hookIndex = 0;
     workInProgressFiber.hooks = [];
     const newChildren = [currentFiber.type(currentFiber.props)];
-    reconcileChildren(currentFiber,newChildren);
+    reconcileChildFibers(currentFiber,newChildren);
     */
 }
 
@@ -167,7 +167,7 @@ function updateClassComponent(currentFiber) {
     currentFiber.stateNode.state = currentFiber.updateQueue.forceUpdate(currentFiber.stateNode.state);
     let newElement = currentFiber.stateNode.render();
     const newChildren = [newElement];
-    reconcileChildren(currentFiber,newChildren);
+    reconcileChildFibers(currentFiber,newChildren);
 }
 
 function updateHost(currentFiber) {
@@ -175,7 +175,7 @@ function updateHost(currentFiber) {
         currentFiber.stateNode = createDom(currentFiber);
     }
     const newChildren = currentFiber.props.children||[];
-    reconcileChildren(currentFiber,newChildren);
+    reconcileChildFibers(currentFiber,newChildren);
 }
 
 function updateHostText(currentFiber) {
@@ -205,7 +205,7 @@ function updateDOM(stateNode,oldProps,newProps) {
 function updateHostRoot(currentFiber) {
     //先处理自己 如果是一个原生节点，创建真实DOM 2.创建子fiber
     let newChildren = currentFiber.props.children;//[element]
-    reconcileChildren(currentFiber,newChildren);//reconcile协调
+    reconcileChildFibers(currentFiber,newChildren);//reconcile协调
 }
 
 //新的element 定义tag
@@ -239,8 +239,6 @@ function reconcileSingleElement(returnFiber,currentFirstChild,newChild){
     //current.children不一定是单个
     //一个已知单节点对一个未知类型的 比较
     //简单粗暴法,类型是否一致，属性
-
-
     let newFiber = null;
     //是dom节点
     if(currentFirstChild && currentFirstChild.type === newChild.type){
@@ -348,22 +346,27 @@ function createFiber(returnFiber,newChild){
 //构建子fiber但stateNode实例化
 //调和的核心思想达到了
 //同级子组件 key的对比
-function reconcileChildren(returnFiber,newChildren){
+function reconcileChildFibers(returnFiber,newChildren){
     let oldReturnFiber = returnFiber.alternate||null;
     let currentFirstChild = oldReturnFiber && oldReturnFiber.child;
     let isObject = typeof newChildren === 'object' && newChildren !== null;
     //是单节点对象
+    //字符串或number的情况？没考虑
     if(isObject){ 
         reconcileSingleElement(returnFiber,currentFirstChild,newChildren);
         return;
+    }else if(Array.isArray(newChildren)){
+        reconcileChildrenArray();
+        let newChildIndex = 0; //新子节点的索引
+        let oldFiber = currentFiber.alternate && currentFiber.alternate.child;
+        if(oldFiber) oldFiber.firstEffect = oldFiber.lastEffect = oldFiber.nextEffect = null;
+        let prevSibiling;//上一个新的子fiber
+
+
+
     }
 
 
-
-    //子组件是数组时需要展开
-    if(newChildren && Array.isArray(newChildren[0])){
-        newChildren = newChildren[0];
-    }
 
     let newChildIndex = 0;//新子节点的索引
     //如果说当前的currentFiber有alternate属性并且alternate有child属性
