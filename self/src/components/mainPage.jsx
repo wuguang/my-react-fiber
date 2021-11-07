@@ -1,6 +1,6 @@
 
 
-import React from '../react';
+import React from '../self-libs/react';
 import './main.less';
 
 

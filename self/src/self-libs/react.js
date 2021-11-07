@@ -19,22 +19,40 @@ import { scheduleRoot, useReducer, useState } from './scheduler';
  */
 
 function createElement(type,config,...children) {
+    let validChildren = [];
+    //校验子节点的合法性
+    children.forEach(child=>{
+        if(child !== null && child !== undefined){
+            validChildren.push(child);
+        }
+    });
+
+    if(validChildren.length === 1){
+        //构造单节点元素
+        //children 不一定是数组，可能是数字等等
+        validChildren = validChildren[0];
+    }
+
     return {
         type,
         props:{
             ...config,//属性扩展 id，key
-            children:children.map(child => {
-                //兼容处理，如果是react元素返回自己，如果是文本类型，如果是一个字符串的话，返回元素对象
-                //比方说B1文本那么就是["B1文本"]改为了
-                //{type:Symbol(ELEMENT_TEXT),props:{text:"B1文本",children:[]}}也不可能有children了 
-                return typeof child === 'object' ? child :{
-                    type:ELEMENT_TEXT,
-                    props:{ text:child,children:[] }
-                }
-            })
+            children:validChildren
         }
     }
 }
+
+/*
+children.map(child => {
+    //兼容处理，如果是react元素返回自己，如果是文本类型，如果是一个字符串的话，返回元素对象
+    //比方说B1文本那么就是["B1文本"]改为了
+    //{type:Symbol(ELEMENT_TEXT),props:{text:"B1文本",children:[]}}也不可能有children了 
+    return typeof child === 'object' ? child :{
+        type:ELEMENT_TEXT,
+        props:{ text:child,children:[] }
+    }
+})
+*/
 
 class Component {
     //isReactComponent = true;

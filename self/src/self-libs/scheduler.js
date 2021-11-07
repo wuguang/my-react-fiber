@@ -208,22 +208,141 @@ function updateHostRoot(currentFiber) {
     reconcileChildren(currentFiber,newChildren);//reconcile协调
 }
 
-/**
- * 调和
- * @param {*} currentFiber 
- * @param {*} newChildren 
- */
+//新的element 定义tag
+/*
+真是的react 有 
+type
+
+
+$$typeof,
+tag,
+elmentType
+
+*/
+function getTagFromElement(newChild){
+    let tag = '';
+    if(typeof newChild.type == 'function' && newChild.type.prototype.isReactComponent){
+        tag = TAG_CLASS;
+    }else if(typeof newChild.type == 'function') {
+        tag = TAG_FUNCTION_COMPONENT;
+    }else if(newChild.type == ELEMENT_TEXT) {
+        tag = TAG_TEXT;
+    }else if(typeof newChild.type === 'string') {
+        tag = TAG_HOST;//如果type是字符串，那么这是一个原生DOM节点div
+    }
+    return tag;
+}
+
+// 胆子节点调和
+function reconcileSingleElement(returnFiber,currentFirstChild,newChild){
+    //newChild 是单个
+    //current.children不一定是单个
+    //一个已知单节点对一个未知类型的 比较
+    //简单粗暴法,类型是否一致，属性
+
+    let tag = getTagFromElement(newChild);
+    let newFiber = null;
+    //是dom节点
+    if(currentFirstChild && currentFirstChild.type === newChild.type){
+        //可复用fiber
+        //第三次或以后
+        //fiber 复用
+        
+        if(currentFirstChild.alternate){
+            newFiber = currentFirstChild.alternate;
+
+            newFiber = oldFiber.alternate;        
+            newFiber.alternate = oldFiber;
+            newFiber.effectTag = JSON.stringify({...oldFiber.props,children:null}) === JSON.stringify({...newChild.props,children:null}) ? null:UPDATE;
+            newFiber.props = newChild.props;
+            newFiber.updateQueue = oldFiber.updateQueue;
+            newFiber.nextEffect = newFiber.firstEffect = newFiber.lastEffect = null;
+        }else{
+            //第二次
+            //fiber对象需新建
+            newFiber = getFiberFromOldFiber(currentFirstChild,newChild);
+        }
+    }else {
+        //第一次更新
+        //或新建fiber
+        newFiber = createFiber(returnFiber,newChild);
+    }
+}
+
+function diffProperties(oldChildFiber,newChild){
+    //JSON.stringify({...oldChildFiber.props,children:null}) === JSON.stringify({...newChild.props,children:null}) ? null:UPDATE,
+    //先比较key是否一致
+    if(JSON.stringify(Object.keys(oldChildFiber.props)) !== JSON.stringify(Object.keys(newChild.props))){
+        return false;
+    }else{
+        for(let k in oldChildFiber.props){
+            if(oldChildFiber.props[k] !== newChild.props[k]){
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+//第一次 也是新建fiber
+//建立双缓存
+function getFiberFromOldFiber(oldChildFiber,newChild){
+    //flags
+    
+    let effectTag = null;
+    if(typeof newChild.type === 'string'){
+        effectTag = diffProperties(oldChildFiber,newChild)?null:UPDATE;
+    } 
+
+    return {
+        tag:oldChildFiber.tag,
+        type:oldChildFiber.type,
+        props:newChild.props, //一定要新的
+        stateNode:  oldChildFiber.stateNode,//div还没有创建DOM元素
+        updateQueue: oldChildFiber.updateQueue,
+        return: oldChildFiber.return,//父Fiber returnFiber
+        alternate: oldChildFiber,//让新的fiber的alternate指向老的fiber
+        effectTag:  JSON.stringify({...oldChildFiber.props,children:null}) === JSON.stringify({...newChild.props,children:null}) ? null:UPDATE,
+        //副作用标示，render会收集副作用 增加 删除 更新
+        nextEffect:null,//effect list也是一个单链表 顺序和完成顺序一样 节点可能会少
+    }
+}
+
+function createFiber(returnFiber,newChild){
+    return  {
+        tag,
+        type:   newChild.type,
+        props:  newChild.props,
+        stateNode:  null,//div还没有创建DOM元素
+        return: returnFiber,//父Fiber returnFiber
+        //updateQueue是挂载在fiber上的
+        updateQueue: new UpdateQueue(),
+        effectTag:  (typeof newChild.type === 'string')? PLACEMENT:null,//副作用标示，render会收集副作用 增加 删除 更新
+        nextEffect:null,//effect list也是一个单链表 顺序和完成顺序一样 节点可能会少
+    }
+}
 
 //父级与子级之间的关系
 //构建子fiber但stateNode实例化
 //调和的核心思想达到了
 //同级子组件 key的对比
+function reconcileChildren(returnFiber,newChildren){
+    let oldReturnFiber = returnFiber.alternate||null;
+    let currentFirstChild = oldReturnFiber && oldReturnFiber.child;
+    let isObject = typeof newChildren === 'object' && newChildren !== null;
+    //是单节点对象
+    if(isObject){ 
+        reconcileSingleElement(returnFiber,currentFirstChild,newChildren);
+        return;
+    }
 
-function reconcileChildren(currentFiber,newChildren){
+
+
     //子组件是数组时需要展开
     if(newChildren && Array.isArray(newChildren[0])){
         newChildren = newChildren[0];
     }
+
     let newChildIndex = 0;//新子节点的索引
     //如果说当前的currentFiber有alternate属性并且alternate有child属性
     //第二次渲染的时候 workInProgressRoot 有 alternate

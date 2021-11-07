@@ -3,7 +3,7 @@ const express = require('express')
 const app = express()
 const port = 3333;
 
-app.use(express.static('html'));
+app.use(express.static('html/template'));
 
 app.get('/', (req, res) => {
   res.send('Hello World!')
