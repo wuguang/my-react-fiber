@@ -55,8 +55,13 @@ function FunctionCounter() {
     )
 }
 */
+<<<<<<< HEAD:self-React/src/index.js
 import React from './libs/react';
 import ReactDOM from './libs/react-dom';
+=======
+import React from './self-libs/react';
+import ReactDOM from './self-libs/react-dom';
+>>>>>>> a30ec0e01505d25ad8219eb467ff178db33a155d:self/src/index.js
 
 import MainPage from './components/mainPage.jsx';
 

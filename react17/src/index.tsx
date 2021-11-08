@@ -60,14 +60,22 @@ const Comp03 = ()=>{
 
 
 ReactDom.render(<>
+<<<<<<< HEAD
     <Comp01 />
     <Comp02 />
     <Comp03 />
+=======
+    <SetTimer07 />
+    <SetTimer03 />
+>>>>>>> a30ec0e01505d25ad8219eb467ff178db33a155d
 </>,root);
 
 
 
 /*
+    <SetTimer />
+    <SetTimer02 />
+
 <SetTimer />
 <SetTimer02 />
 createRoot(root).render(<ConcurrentMode>

@@ -1,6 +1,20 @@
 <html>
     <head>
-
+        <style>
+            body{
+                padding:30px 0 0 30px;
+            }
+            .green{
+                padding:15px;
+                border:3px solid green;
+                background: rgb(197, 245, 141);
+            }
+            .red{
+                padding:15px;
+                border: 3px solid red;
+                background: rgb(250, 214, 213);
+            }
+        </style>
     </head>
     <body>
         <div id="react-fiber-root"></div>
@@ -8,8 +22,9 @@
 
     <script src="./react/umd/react.development.js"> </script>    
     <script src="./react-dom/umd/react-dom.development.js"> </script>    
+    <script src="./babel.js"></script>
 
-    <script type="text/javascript">
+    <script type="text/babel">
         //process.env.NODE_ENV = 'development';
 
         const ReactDom = window.ReactDom;
@@ -21,8 +36,8 @@
 
         const root = document.getElementById("react-fiber-root");
 
-        function SetTimer03(){
-
+        function Main(){
+            const [show,setShow] = useState(true);
             const [ number , setNumber ] = useState(0)
             const DivDemo = useMemo(() => React.createElement("div", null, " hello , i am useMemo "),[])
             const curRef  = useRef(null)
@@ -31,6 +46,7 @@
                 console.log(curRef.current)
             },[]);
 
+<<<<<<< HEAD
             const contentJsx = React.createElement("div", {
                 ref: curRef
             }, "hello,world ", number, DivDemo, React.createElement("button", {
@@ -47,8 +63,98 @@
         const setTimer03Jsx = React.createElement(React.Fragment, null, React.createElement(SetTimer03, null));
         
         ReactDom.render(setTimer03Jsx,root);
+=======
+            const triggleShow = ()=>{
+                setShow(!show);
+            }
+            
+            return <div id="out">
+                <div id="p-container">
+                    <p className={show?'green':'red'}>see my border color--{show?'green':'red'}</p>
+                </div>
+                <button onClick={triggleShow}>+ click me +</button>
+            </div>
+        }
+
+        /*
+
+        <h1 id="h1">I am h1</h1>
+        <div id="h2_container">
+            {
+                Array(3).fill(1).map(item=>{
+                    return <h2>
+                        <button onClick={triggleShow}>+ click me +</button>
+                    </h2>
+                })
+            }
+        </div>
+
+
+        <ul>
+            {
+                Array(7).fill(1).map(item=>{
+                    return <li>{item}</li>
+                })
+            }
+        </ul>
+        */
+
+
+        ReactDom.render(<Main/>,root);
+>>>>>>> a30ec0e01505d25ad8219eb467ff178db33a155d
 
     </script>
     
     
 </html>
+
+<!-- 
+    
+if ( (unitOfWork.mode & ProfileMode) !== NoMode) {
+    startProfilerTimer(unitOfWork);
+    next = beginWork$1(current, unitOfWork, subtreeRenderLanes);
+    stopProfilerTimerIfRunningAndRecordDelta(unitOfWork, true);
+  } else {
+    next = beginWork$1(current, unitOfWork, subtreeRenderLanes);
+  }
+
+  resetCurrentFiber();
+  unitOfWork.memoizedProps = unitOfWork.pendingProps;
+
+  if (next === null) {
+    // If this doesn't spawn new work, complete the current work.
+    completeUnitOfWork(unitOfWork);
+  } else {
+    workInProgress = next;
+  }
+
+
+
+
+
+    if (oldProps !== newProps || hasContextChanged() || ( // Force a re-render if the implementation changed due to hot reload:
+        workInProgress.type !== current.type )) {
+
+
+    if ((completedWork.flags & Incomplete) === NoFlags) {
+
+
+
+    var flags = completedWork.flags; 
+
+    updateHostComponent$1 = function (current, workInProgress, type, newProps, rootContainerInstance) {
+
+
+    if (typeof newProps.children !== typeof oldProps.children && (typeof newProps.children === 'string' || typeof newProps.children === 'number')) {
+        var string = '' + newProps.children;
+        var ownAncestorInfo = updatedAncestorInfo(hostContextDev.ancestorInfo, type);
+        validateDOMNesting(null, string, ownAncestorInfo);
+    }
+
+   return diffProperties(domElement, type, oldProps, newProps);
+
+   function diffProperties(domElement, tag, lastRawProps, nextRawProps, rootContainerElement) {
+
+
+   markUpdate(workInProgress);
+-->
