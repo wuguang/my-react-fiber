@@ -28,7 +28,7 @@
             const curRef  = useRef(null)
 
             useEffect(()=>{
-            console.log(curRef.current)
+                console.log(curRef.current)
             },[]);
 
             const contentJsx = React.createElement("div", {
@@ -37,13 +37,15 @@
                 onClick: () => setNumber(number + 1)
             }, "number++"));
 
+            const content = <div>
+                
+            </div>;
+
             return contentJsx;
         }
 
-
-
         const setTimer03Jsx = React.createElement(React.Fragment, null, React.createElement(SetTimer03, null));
-
+        
         ReactDom.render(setTimer03Jsx,root);
 
     </script>

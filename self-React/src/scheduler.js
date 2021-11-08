@@ -1,4 +1,4 @@
-import { TAG_ROOT, ELEMENT_TEXT, TAG_HOST, TAG_TEXT, PLACEMENT,DELETION ,UPDATE ,TAG_CLASS, TAG_FUNCTION_COMPONENT } from "./constants";
+import { TAG_ROOT, ELEMENT_TEXT, TAG_HOST, TAG_TEXT, PLACEMENT,DELETION ,UPDATE ,TAG_CLASS, TAG_FUNCTION_COMPONENT } from "./libs/constants";
 import { setProps } from './utils'
 import { UpdateQueue,Update } from "./updateQueue";
 
@@ -426,33 +426,8 @@ function commitDeletion(currentFiber,domReturn) {
     */
 }
 
-let currentlyRenderingFiber = null;
-function renderWithHooks(current,workInProgress,Component,props){
-    currentlyRenderingFiber = workInProgress;
-    workInProgress.memoizedState = null; /* 每一次执行函数组件之前，先清空状态 （用于存放hooks列表）*/
-    workInProgress.updateQueue = null;    /* 清空状态（用于存放effect list） */
-    //ReactCurrentDispatcher.current =  current === null || current.memoizedState === null ? HooksDispatcherOnMount : HooksDispatcherOnUpdate /* 判断是初始化组件还是更新组件 */
-    let children = Component(props, secondArg=null); /* 执行我们真正函数组件，所有的hooks将依次执行。 */
-}
-
-function mountWorkInProgressHook() {
-    const hook = {  memoizedState: null, baseState: null, baseQueue: null,queue: null, next: null,};
-    if (workInProgressHook === null) {  // 只有一个 hooks
-      currentlyRenderingFiber.memoizedState = workInProgressHook = hook;
-    } else {  // 有多个 hooks
-      workInProgressHook = workInProgressHook.next = hook;
-    }
-    return workInProgressHook;
-  }
-
-export function useEffect(createFn,deps,returnFn){
-
-}
-
-
 
 export function useReducer(reducer, initiaValue){
-
     let newHook = workInProgressFiber.alternate && workInProgressFiber.alternate.hooks
         && workInProgressFiber.alternate.hooks[hookIndex];
     if(newHook) {//第二次渲染 YODO
@@ -463,6 +438,7 @@ export function useReducer(reducer, initiaValue){
             updateQueue: new UpdateQueue() //空的更新队列
         }
     }
+
     const dispatch = action => { //{type:'ADD'}
         let payload = reducer ? reducer(newHook.state, action) : action;
         newHook.updateQueue.enqueueUpdate(
@@ -474,6 +450,7 @@ export function useReducer(reducer, initiaValue){
     workInProgressFiber.hooks[hookIndex++] = newHook;
     return [newHook.state, dispatch];
 }
+
 
 export function useState(initiaValue) {
     return useReducer(null, initiaValue);
