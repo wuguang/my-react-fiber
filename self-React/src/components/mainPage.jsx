@@ -1,10 +1,6 @@
 
 
-<<<<<<< HEAD:self-React/src/components/mainPage.jsx
-import React from '../libs/react';
-=======
 import React from '../self-libs/react';
->>>>>>> a30ec0e01505d25ad8219eb467ff178db33a155d:self/src/components/mainPage.jsx
 import './main.less';
 
 

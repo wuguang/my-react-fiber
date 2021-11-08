@@ -10,7 +10,6 @@ import MainPage from './mainPage';
 import SetTimer from './components/setTimer';
 import SetTimer02 from './components/setTimer02';
 import SetTimer03 from './components/setTimer03';
-
 import SetTimer07 from './components/setTimer07';
 
 import {getHooks} from './hooks/myhooks';
@@ -60,26 +59,24 @@ const Comp03 = ()=>{
 
 
 ReactDom.render(<>
-<<<<<<< HEAD
-    <Comp01 />
-    <Comp02 />
-    <Comp03 />
-=======
     <SetTimer07 />
     <SetTimer03 />
->>>>>>> a30ec0e01505d25ad8219eb467ff178db33a155d
 </>,root);
 
 
 
 /*
-    <SetTimer />
-    <SetTimer02 />
+<SetTimer />
+<SetTimer02 />
 
 <SetTimer />
 <SetTimer02 />
+
+
 createRoot(root).render(<ConcurrentMode>
     <MainPage />
     <SetTimer />
 </ConcurrentMode>);
+
+
 */
