@@ -369,7 +369,6 @@ function reconcileChildrenArray(returnFiber, currentFirstChild, newChildren){
     let newTag = getTagFromElement(newChild);
     //校验 newChildren 是否有 key
     //validChildrenKeys();
-    //
     while(newChild && oldChildFiber){
         //相同可以复用fiber
         if(newChild.key === oldChildFiber.key && newTag === oldChildFiber.tag){
@@ -382,25 +381,21 @@ function reconcileChildrenArray(returnFiber, currentFirstChild, newChildren){
                 newFiber = getFiberFromOldFiber(oldChildFiber,newChild);
             }
 
-
             returnFiber.child = newFiber;
             if(newIndex >0 ){
                 prevNewFiber.sibling = newFiber;
             }
             prevNewFiber = newFiber;
-            newIndex ++;
-            newChild = newChildren[newIndex]
-            oldChildFiber = oldChildFiber.sibling;
 
             //新children遍历完毕了
-            if(newIndex === newChildren.length){
+            if(newIndex === newChildren.length-1){
                 //如果 oldReturnFiber 还有子节点，则全部删除
                 //待修改内部细节
                 deleteRemainingChildren(returnFiber,oldChildFiber);
                 break;
             //老节点遍历完了
             //新节点全部new出来
-            }else if(oldChildFiber){
+            }else if(oldChildFiber.sibling === null){
                 //剩余的new children继续循环 全部newFiber
                 for(let len=newChildren.length; newIndex<len; newIndex++){
                     newFiber = createFiber(returnFiber,newChildren[newIndex],newIndex);
@@ -411,12 +406,30 @@ function reconcileChildrenArray(returnFiber, currentFirstChild, newChildren){
                 break;
             }
 
+            //进行下次循环
+            newIndex ++;
+            newChild = newChildren[newIndex]
+            oldChildFiber = oldChildFiber.sibling;
 
+        }else{
+            //2个都没循环完
+            //第一轮循环终止,进行下一次循环
+            //newIndex 终止索引
+            break;
         }
     }
 
 
+    //第二轮循环
+    //1、 old 建立map
 
+    let oldFiberMap = new WeakMap();
+    while(oldChildFiber){
+        oldFiberMap.set(oldChildFiber,oldChildFiber);
+        oldChildFiber = oldChildFiber.sibling;
+    }
+
+    // 2、
 }
 
 //父级与子级之间的关系
