@@ -46,32 +46,32 @@
                 console.log(curRef.current)
             },[]);
 
-<<<<<<< HEAD
-            const contentJsx = React.createElement("div", {
-                ref: curRef
-            }, "hello,world ", number, DivDemo, React.createElement("button", {
-                onClick: () => setNumber(number + 1)
-            }, "number++"));
-
-            const content = <div>
-                
-            </div>;
-
-            return contentJsx;
-        }
-
-        const setTimer03Jsx = React.createElement(React.Fragment, null, React.createElement(SetTimer03, null));
-        
-        ReactDom.render(setTimer03Jsx,root);
-=======
             const triggleShow = ()=>{
+                console.log(`show = ${show}`);
                 setShow(!show);
+            }
+
+            const One = ()=>{
+                return <React.Fragment>
+                    <p  key="1">11</p>
+                    <p  key="2">11</p>
+                    <p  key="3">11</p>
+                </React.Fragment>
+            }
+
+            const Two = ()=>{
+                return <React.Fragment>
+                    <span  key="1">11</span>
+                    <span  key="2">11</span>
+                    <span  key="3">11</span>
+                </React.Fragment>
             }
             
             return <div id="out">
-                <div id="p-container">
-                    <p className={show?'green':'red'}>see my border color--{show?'green':'red'}</p>
-                </div>
+                {   show?
+                    <React.Fragment><One/><Two/></React.Fragment>:
+                    <React.Fragment><Two/><One/></React.Fragment>
+                }
                 <button onClick={triggleShow}>+ click me +</button>
             </div>
         }
@@ -101,7 +101,6 @@
 
 
         ReactDom.render(<Main/>,root);
->>>>>>> a30ec0e01505d25ad8219eb467ff178db33a155d
 
     </script>
     
