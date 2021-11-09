@@ -1,4 +1,4 @@
-import { TAG_ROOT, ELEMENT_TEXT, TAG_HOST, TAG_TEXT, PLACEMENT,DELETION ,UPDATE ,TAG_CLASS, TAG_FUNCTION_COMPONENT } from "./libs/constants";
+import { TAG_ROOT, ELEMENT_TEXT, TAG_HOST, TAG_TEXT, PLACEMENT,DELETION ,UPDATE ,TAG_CLASS, TAG_FUNCTION_COMPONENT } from "./constants";
 import { setProps } from './utils'
 import { UpdateQueue,Update } from "./updateQueue";
 
@@ -144,14 +144,14 @@ function beginWork(currentFiber) {
 
 function updateFunctionComponent(currentFiber) {
     //需在renderWidthHooks里执行
-    renderWithHooks(currentFiber.alternate||null,currentFiber,currentFiber.type,currentFiber.props);
-    /*
+    //renderWithHooks(currentFiber.alternate||null,currentFiber,currentFiber.type,currentFiber.props);
+  
     workInProgressFiber = currentFiber;
     hookIndex = 0;
     workInProgressFiber.hooks = [];
     const newChildren = [currentFiber.type(currentFiber.props)];
     reconcileChildFibers(currentFiber,newChildren);
-    */
+    
 }
 
 function updateClassComponent(currentFiber) {
