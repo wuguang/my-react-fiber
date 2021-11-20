@@ -10,9 +10,53 @@ import MainPage from './mainPage';
 import SetTimer from './components/setTimer';
 import SetTimer02 from './components/setTimer02';
 import SetTimer03 from './components/setTimer03';
-
 import SetTimer07 from './components/setTimer07';
+
+import {getHooks} from './hooks/myhooks';
 const root = document.getElementById("react-fiber-root");
+
+
+const Comp01 = ()=>{
+    let {name,setName,age,setAge} = getHooks();
+
+    const updateAge = ()=>{
+        setAge(age+1);
+    }
+    return <div>
+        <h2>Hello ,comp01</h2>
+        <h3>{name}</h3>
+        <h3>{age}</h3>
+        <button onClick={updateAge}>update Age</button>
+    </div>
+}
+
+const Comp02 = ()=>{
+    let {name,setName,age,setAge} = getHooks();
+
+    const updateAge = ()=>{
+        setAge(age+1);
+    }
+    return <div>
+        <h2>Hello ,comp02</h2>
+        <h3>{name}</h3>
+        <h3>{age}</h3>
+        <button onClick={updateAge}>update Age</button>
+    </div>
+}
+const Comp03 = ()=>{
+    let {name,setName,age,setAge} = getHooks();
+
+    const updateAge = ()=>{
+        setAge(age+1);
+    }
+    return <div>
+        <h2>Hello ,comp03</h2>
+        <h3>{name}</h3>
+        <h3>{age}</h3>
+        <button onClick={updateAge}>update Age</button>
+    </div>
+}
+
 
 ReactDom.render(<>
     <SetTimer07 />
@@ -21,3 +65,21 @@ ReactDom.render(<>
 
 
 
+<<<<<<< HEAD
+=======
+/*
+<SetTimer />
+<SetTimer02 />
+
+<SetTimer />
+<SetTimer02 />
+
+
+createRoot(root).render(<ConcurrentMode>
+    <MainPage />
+    <SetTimer />
+</ConcurrentMode>);
+
+
+*/
+>>>>>>> f0b6e07a05e44be33f9021513d0ef4e22cf7164f

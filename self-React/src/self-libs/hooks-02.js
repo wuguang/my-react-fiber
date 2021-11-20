@@ -7,7 +7,7 @@ let workInProgressHook = null;
 function renderWithHooks(current,workInProgress,Component,props){
     lastFiber = current;
     currentlyRenderingFiber = workInProgress;
-    workInProgress.memoizedState = null; /* 每一次执行函数组件之前，先清空状态 （用于存放hooks列表）*/
+    workInProgress.memoizedState = null;  /* 每一次执行函数组件之前，先清空状态 （用于存放hooks列表）*/
     workInProgress.updateQueue = null;    /* 清空状态（用于存放effect list） */
     
     //ReactCurrentDispatcher.current =  current === null || current.memoizedState === null ? HooksDispatcherOnMount : HooksDispatcherOnUpdate /* 判断是初始化组件还是更新组件 */
@@ -26,58 +26,48 @@ function useEffect(create,deps){
         //mountEffect
         const hook = mountWorkInProgressHook();
         const nextDeps = deps === undefined ? null : deps;
+        //执行 function
         create();
-
-        //currentlyRenderingFiber.effectTag |= UpdateEffect | PassiveEffect;
-        
-        hook.memoizedState = {
-            create,
-            deps:nextPeps,
-            next:hook.next
-        }
-        
-        /*
-        pushEffect( 
-            HookHasEffect | hookEffectTag, 
-            create, // useEffect 第一次参数，就是副作用函数
-            undefined, 
-            nextDeps, // useEffect 第二次参数，deps    
-        )
-        */
-        
-
     }else{
-        updateEffect(create,deps);
+        //updateEffect(create,deps);
+        //const hook = updateWorkInProgressHook();
+        if (!areHookInputsEqual(nextDeps, prevDeps)) { 
+            create();
+        } 
     }
 }
+
+function updateEffect(create,deps){
+    workInProgressHook = currentlyRenderingFiber.memoizedState;
+
+    return workInProgressHook;
+}
+
 
 function useState(){
 
 }
 
-function updateEffect(){
 
+
+
+function updateWorkInProgressHook(){
+    //获取当前hook
+    if(workInProgressHook){
+        workInProgressHook = lastFiber.memoizedState;
+    }else{
+        workInProgressHook = workInProgressHook.next;
+    }
+    return workInProgressHook;
 }
 
-function mountEffect(create,deps){
-    const hook = mountWorkInProgressHook();
-    const nextDeps = deps === undefined ? null : deps;
-    currentlyRenderingFiber.effectTag |= UpdateEffect | PassiveEffect;
-    hook.memoizedState = pushEffect( 
-      HookHasEffect | hookEffectTag, 
-      create, // useEffect 第一次参数，就是副作用函数
-      undefined, 
-      nextDeps, // useEffect 第二次参数，deps    
-    )
-}
-
+//第一次挂载时
 function mountWorkInProgressHook() {
     const hook = {  memoizedState: null, baseState: null, baseQueue: null,queue: null, next: null,};
     if (workInProgressHook === null) {  // 只有一个 hooks
       currentlyRenderingFiber.memoizedState  = hook;
       //记住上次hook
       workInProgressHook = hook;
-
     } else {  // 有多个 hooks
         //上次hook 执向当前hook
         workInProgressHook.next = hook;
@@ -87,15 +77,16 @@ function mountWorkInProgressHook() {
     return workInProgressHook;
 }
 
-function updateEffect(create,deps){
-    const hook = updateWorkInProgressHook();
-    if (areHookInputsEqual(nextDeps, prevDeps)) { /* 如果deps项没有发生变化，那么更新effect list就可以了，无须设置 HookHasEffect */
-        pushEffect(hookEffectTag, create, destroy, nextDeps);
-        return;
-    } 
-    /* 如果deps依赖项发生改变，赋予 effectTag ，在commit节点，就会再次执行我们的effect  */
-    currentlyRenderingFiber.effectTag |= fiberEffectTag
-    hook.memoizedState = pushEffect(HookHasEffect | hookEffectTag,create,destroy,nextDeps)
+function mountEffect(create,deps){
+    const hook = mountWorkInProgressHook();
+    const nextDeps = deps === undefined ? null : deps;
+    create();
+}
+
+
+//暴力对比
+function areHookInputsEqual(nextDeps, prevDeps){
+    return JSON.stringify(nextDeps) === JSON.stringify(prevDeps);
 }
 
 

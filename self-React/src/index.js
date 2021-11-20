@@ -60,7 +60,7 @@ import ReactDOM from './self-libs/react-dom';
 
 import MainPage from './components/mainPage.jsx';
 
-const {useState} = React;
+const {useState,useEffect} = React;
 
 class Test01 extends React.Component {
 
@@ -73,7 +73,6 @@ class Test01 extends React.Component {
     }
 
     render(){
-
         return <div> 
             <p> hello </p>
             <p id="number">{this.state.number}</p>
@@ -83,15 +82,21 @@ class Test01 extends React.Component {
 }
 
 const Test02 = ()=>{
-    const [number,setNumber] = useState(0)
-    addNum = ()=>{
+    const [number,setNumber] = useState(0);
+
+    const addNum = ()=>{
         setNumber(number + 1);
     }
+
+    useEffect(()=>{
+        //setNumber(3);
+    },[]);
+
     return <div> 
         <p> hello </p>
-        <p id="number">{this.state.number}</p>
-        <p> <button onClick={ this.addNum} > number ++ </button></p>
+        <p id="number">{number}</p>
+        <p> <button onClick={ ()=>{addNum()}} > number ++ </button></p>
     </div>
 }
 
-ReactDOM.render(<Test01 />,document.getElementById("root"));
+ReactDOM.render(<Test02 />,document.getElementById("root"));
