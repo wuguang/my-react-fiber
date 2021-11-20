@@ -8,7 +8,7 @@ const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 module.exports = {
     context: sourcePath,
     entry: {
-        index: path.resolve(__dirname, `../../src/index.tsx`)
+        index: path.resolve(__dirname, `../../src/index.ts`)
     },
     output: {
         filename: '[name].js',
