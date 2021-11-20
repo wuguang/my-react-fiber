@@ -21,14 +21,3 @@ ReactDom.render(<>
 
 
 
-/*
-    <SetTimer />
-    <SetTimer02 />
-
-<SetTimer />
-<SetTimer02 />
-createRoot(root).render(<ConcurrentMode>
-    <MainPage />
-    <SetTimer />
-</ConcurrentMode>);
-*/
