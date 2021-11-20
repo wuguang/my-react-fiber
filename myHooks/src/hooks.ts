@@ -9,34 +9,52 @@ interface Fiber {
     updateQueue:any;
 }
 
-interface Update{
-    //正真需要更新的值，或者function
-    action:any;
-    eagerReducer: null;
-    eagerState: null;
-    next: Update;
-}
-
-
-
-
-//任务队列
-interface queue{
-    pending: any;
-    dispatch:any;
-    lastRenderedReducer:Function;
-    lastRenderedState:Function;
-}
-
-
-interface Hook {
+interface Hook{
     memoizedState: any;
     baseState: any;
-    baseQueue: queue|null;
-    queue: queue|null;
-    next: Hook;
+    baseQueue: UpdateQueue<any,any>|null;
+    queue: any;
+    next: Hook|null;
 }
 
+
+
+type Update<State,A> = {
+    tag?: 0 | 1 | 2 | 3,
+    payload?: any,
+    callback?: Function,
+    hasEagerState?: boolean,
+    eagerState?: State | null,
+    action:A,
+    next: Update<State,A>
+};
+
+  
+//action的精妙定义
+type BasicStateAction<S> = (S)=> S | S;
+type Dispatch<A> = (A)=> void;
+
+
+type UpdateQueue<S,A> = {
+    pending:Update<S,A>|null,
+    /*
+    baseState?: S,
+    firstBaseUpdate?: Update<S,A>,
+    lastBaseUpdate?: Update<S,A>,
+    shared?: SharedQueue<S>,
+    effects?: Array<Update<S,A>>,
+    */
+    lastRenderedReducer:(S,A)=>S|null,
+    lastRenderedState:S|null;
+    last:Update<S,A>,
+    dispath:(A)=>S|null;
+};
+  
+type SharedQueue<State>= {
+    pending: Update<State,any>,
+    interleaved: Update<State,any>,
+    lanes: any;
+}
 
 
 let currentlyRenderingFiber:Fiber = null;
@@ -59,6 +77,35 @@ const HooksDispatcherOnUpdate = {
     useReducer:updateReducer,
 }
 
+function dispatchAction<A,State>(fiber:Fiber, queue:UpdateQueue<State>, action){
+    /* 第一步：创建一个 update */
+    const update: Update<any,A> = {
+        action,
+        next: null,
+    };
+    //pending有没待执行的任务
+    const pending = queue.pending;
+    //挂载第一个任务
+    if (pending === null) {  /* 第一个待更新任务 */
+        update.next = update;
+    } else {  /* 已经有带更新任务 */
+        //构建环状链表
+        update.next = queue.pending;
+        queue.pending.next = update;
+    }
+    queue.pending = update;
+
+
+    const lastRenderedReducer = queue.lastRenderedReducer;
+    const currentState = queue.lastRenderedState;                 /* 上一次的state */
+    const eagerState = lastRenderedReducer(currentState, action); /* 这一次新的state */
+    if (is(eagerState, currentState)) {                           /* 如果每一个都改变相同的state，那么组件不更新 */
+       return 
+    }
+    scheduleUpdateOnFiber(fiber);   
+
+}
+
 //useState 第一次，返回[value,setValue]
 function mountState(initialState){
 
@@ -70,12 +117,25 @@ function mountState(initialState){
     } 
     //初始化赋值
     hook.memoizedState = hook.baseState = initialState;
-
-    const queue = (hook.queue = { ... }); // 负责记录更新的各种状态。
+    //初始化queue 为空 {}
+    const queue: UpdateQueue<S, BasicStateAction<S>> = {
+        pending: null,
+        interleaved: null,
+        dispatch: null,
+        lastRenderedReducer: basicStateReducer,
+        lastRenderedState: (initialState: any),
+      };
+    //(hook.queue = {  }); // 负责记录更新的各种状态。
     
     const dispatch = (queue.dispatch = (dispatchAction.bind(  null,currentlyRenderingFiber,queue, ))) // dispatchAction 为更新调度的主要函数 
     return [hook.memoizedState, dispatch];
 }
+
+function basicStateReducer<S>(state: S, action: BasicStateAction<S>): S {
+    // $FlowFixMe: Flow doesn't like mixed types
+    return typeof action === 'function' ? action(state) : action;
+}
+  
 
 function mountEffect(){
 
@@ -135,4 +195,8 @@ function renderWithHooks(current,workInProgress,Component,props){
     workInProgressHook = null;
     let children = Component(props);   /* 执行我们真正函数组件，所有的hooks将依次执行。 */
     //ReactCurrentDispatcher.current = ContextOnlyDispatcher;  /* 将hooks变成第一种，防止hooks在函数组件外部调用，调用直接报错。 */
+}
+
+function  scheduleUpdateOnFiber(fiber){
+
 }
