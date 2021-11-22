@@ -44,9 +44,9 @@ type UpdateQueue<S,A> = {
     shared?: SharedQueue<S>,
     effects?: Array<Update<S,A>>,
     */
-    lastRenderedReducer:(S,A)=>S|null,
+    lastRenderedReducer:(S,A)=>S|null;
     lastRenderedState:S|null;
-    last:Update<S,A>,
+    last:Update<S,A>;
     dispath:(A)=>S|null;
 };
   
@@ -77,7 +77,11 @@ const HooksDispatcherOnUpdate = {
     useReducer:updateReducer,
 }
 
-function dispatchAction<A,State>(fiber:Fiber, queue:UpdateQueue<State>, action){
+function is(objA,objB){
+    return JSON.stringify(objA) === JSON.stringify(objB);
+}
+
+function dispatchAction<A,State>(fiber:Fiber, queue:UpdateQueue<State,A>, action){
     /* 第一步：创建一个 update */
     const update: Update<any,A> = {
         action,
@@ -99,7 +103,7 @@ function dispatchAction<A,State>(fiber:Fiber, queue:UpdateQueue<State>, action){
     const lastRenderedReducer = queue.lastRenderedReducer;
     const currentState = queue.lastRenderedState;                 /* 上一次的state */
     const eagerState = lastRenderedReducer(currentState, action); /* 这一次新的state */
-    if (is(eagerState, currentState)) {                           /* 如果每一个都改变相同的state，那么组件不更新 */
+    if (is(eagerState,currentState)) {                           /* 如果每一个都改变相同的state，那么组件不更新 */
        return 
     }
     scheduleUpdateOnFiber(fiber);   
@@ -117,20 +121,25 @@ function mountState(initialState){
     } 
     //初始化赋值
     hook.memoizedState = hook.baseState = initialState;
+
     //初始化queue 为空 {}
-    const queue: UpdateQueue<S, BasicStateAction<S>> = {
+    const queue: UpdateQueue<any,any> = {
         pending: null,
-        interleaved: null,
-        dispatch: null,
+        dispath: null,
+        last:null,
         lastRenderedReducer: basicStateReducer,
-        lastRenderedState: (initialState: any),
-      };
+        //上一次的 state 
+        lastRenderedState: initialState
+    };
+
     //(hook.queue = {  }); // 负责记录更新的各种状态。
     
-    const dispatch = (queue.dispatch = (dispatchAction.bind(  null,currentlyRenderingFiber,queue, ))) // dispatchAction 为更新调度的主要函数 
+    const dispatch = (queue.dispatch = (dispatchAction.bind(null,currentlyRenderingFiber,queue))) // dispatchAction 为更新调度的主要函数 
     return [hook.memoizedState, dispatch];
 }
 
+
+//源码如此
 function basicStateReducer<S>(state: S, action: BasicStateAction<S>): S {
     // $FlowFixMe: Flow doesn't like mixed types
     return typeof action === 'function' ? action(state) : action;
@@ -198,5 +207,6 @@ function renderWithHooks(current,workInProgress,Component,props){
 }
 
 function  scheduleUpdateOnFiber(fiber){
-
+    //开始调度
+    //......
 }
