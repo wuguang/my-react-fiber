@@ -47,7 +47,7 @@ type UpdateQueue<S,A> = {
     lastRenderedReducer:(S,A)=>S|null;
     lastRenderedState:S|null;
     last:Update<S,A>;
-    dispath:(A)=>S|null;
+    dispatch:(A)=>S|null;
 };
   
 type SharedQueue<State>= {
@@ -112,7 +112,6 @@ function dispatchAction<A,State>(fiber:Fiber, queue:UpdateQueue<State,A>, action
 
 //useState 第一次，返回[value,setValue]
 function mountState(initialState){
-
     //初始化当前hook
     const hook = mountWorkInProgressHook();
     //如果 useState 第一个参数为函数，执行函数得到初始化state
@@ -125,16 +124,16 @@ function mountState(initialState){
     //初始化queue 为空 {}
     const queue: UpdateQueue<any,any> = {
         pending: null,
-        dispath: null,
+        dispatch: null,
         last:null,
         lastRenderedReducer: basicStateReducer,
         //上一次的 state 
         lastRenderedState: initialState
     };
 
-    //(hook.queue = {  }); // 负责记录更新的各种状态。
-    
-    const dispatch = (queue.dispatch = (dispatchAction.bind(null,currentlyRenderingFiber,queue))) // dispatchAction 为更新调度的主要函数 
+    //dispatch 更新调度当前的queue
+    const dispatch = dispatchAction.bind(null,currentlyRenderingFiber,queue); 
+    queue.dispatch = dispatch;
     return [hook.memoizedState, dispatch];
 }
 
@@ -158,18 +157,29 @@ function mountReducer(){
 
 
 
-
+  
+//源码如此
 function updateState(initValue){
-
+    return updateReducer(basicStateReducer, (initialState: any));
 }
+
+function updateReducer(){
+    // 第一步把待更新的pending队列取出来。合并到 baseQueue
+    const first = baseQueue.next;
+    let update = first;
+    do {
+        /* 得到新的 state */
+        newState = reducer(newState, action);
+    } while (update !== null && update !== first);
+    hook.memoizedState = newState;
+    return [hook.memoizedState, dispatch];
+}
+
 
 function updateEffect(){
 
 }
 
-function updateReducer(){
-
-}
 
 
 
