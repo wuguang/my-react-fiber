@@ -97,8 +97,11 @@ class Test02 extends React.Component{
             <p id="number">{this.state.number}</p>
             <p> <button onClick={ this.addNum } > number ++ </button></p>
         </div>
-    } 
+    }
+
 }
 
 
 ReactDOM.render(<Test02 />,document.getElementById("root"));
+
+

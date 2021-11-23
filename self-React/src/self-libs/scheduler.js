@@ -1,6 +1,7 @@
 import { TAG_ROOT, ELEMENT_TEXT, TAG_HOST, TAG_TEXT, PLACEMENT,DELETION ,UPDATE ,TAG_CLASS, TAG_FUNCTION_COMPONENT } from "./constants";
 import { setProps } from './utils'
 import { UpdateQueue,Update } from "./updateQueue";
+import {renderWithHooks} from './hooks';
 
 let nextUnitOfWork = null; //下一个工作单元
 let workInProgressRoot = null;//RootFiber应用的根
@@ -57,11 +58,9 @@ export function scheduleRoot(rootFiber) {
 //fiber 分割任何的核心流程
 function performUnitOfWork(currentFiber) {
     beginWork(currentFiber);
-    
     if(currentFiber.child) {
         return currentFiber.child; //有孩子返回孩子
     }
-    
     while(currentFiber) {
         completeUnitOfWork(currentFiber);
         if(currentFiber.sibling) {
@@ -145,13 +144,18 @@ function beginWork(currentFiber) {
 function updateFunctionComponent(currentFiber) {
     //需在renderWidthHooks里执行
     //renderWithHooks(currentFiber.alternate||null,currentFiber,currentFiber.type,currentFiber.props);
-  
+    
     workInProgressFiber = currentFiber;
+    let newChildren = renderWithHooks(currentFiber.alternate,workInProgressFiber,currentFiber.type,currentFiber.props);
+    reconcileChildFibers(currentFiber,newChildren);
+    
+    /*
     hookIndex = 0;
     workInProgressFiber.hooks = [];
     const newChildren = [currentFiber.type(currentFiber.props)];
     reconcileChildFibers(currentFiber,newChildren);
-    
+    */
+
 }
 
 function updateClassComponent(currentFiber) {
@@ -692,58 +696,6 @@ function commitDeletion(currentFiber,domReturn) {
 }
 
 
-export function useReducer(reducer, initiaValue){
-    let newHook = workInProgressFiber.alternate && workInProgressFiber.alternate.hooks
-        && workInProgressFiber.alternate.hooks[hookIndex];
-    if(newHook) {//第二次渲染 YODO
-        newHook.state = newHook.updateQueue.forceUpdate(newHook.state);
-    }else{
-        newHook = {
-            state: initiaValue,
-            updateQueue: new UpdateQueue() //空的更新队列
-        }
-    }
-
-    const dispatch = action => { //{type:'ADD'}
-        let payload = reducer ? reducer(newHook.state, action) : action;
-        newHook.updateQueue.enqueueUpdate(
-            new Update(payload)
-        );
-        scheduleRoot();
-    }
-
-    workInProgressFiber.hooks[hookIndex++] = newHook;
-    return [newHook.state, dispatch];
-}
-
-
-export function useState(initiaValue) {
-    return useReducer(null, initiaValue);
-}
-
-
 //react询问浏览器是否空闲,这里有个优先级的概念 expirationTime
 window.requestIdleCallback(workLoop,{timeout:500});
 
-
-
-
-
-
-/*
-let workInProgressHook = null;
-let currentlyRenderingFiber = {};
-function mountWorkInProgressHook() {
-  const hook = {  memoizedState: null, baseState: null, baseQueue: null,queue: null, next: null,};
-  if (workInProgressHook === null) {  // 只有一个 hooks
-    currentlyRenderingFiber.memoizedState = workInProgressHook = hook;
-  } else {  // 有多个 hooks
-     _workInProgressHook = workInProgressHook;
-     while(_workInProgressHook.next) {
-          _workInProgressHook = _workInProgressHook.next;
-     }
-     _workInProgressHook.next = hook;
-  }
-  return workInProgressHook;
-}
-*/

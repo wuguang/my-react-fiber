@@ -1,6 +1,8 @@
 /**
  * webpack公共配置文件
- */
+*/
+
+
 const path = require('path');
 
 module.exports = {
@@ -16,16 +18,19 @@ module.exports = {
       {
         test: /\.(js|jsx)$/,
         exclude: /(node_modules|bower_components)/,
-        use: {
-          loader: 'babel-loader',
-          options: {
-            presets: ['@babel/preset-env', '@babel/preset-react'],
-            plugins: [
-              '@babel/plugin-transform-runtime',
-              '@babel/plugin-proposal-class-properties',
-            ],
-          },
-        },
+        use:[
+            {
+                loader: 'babel-loader',
+                options: {
+                    presets: ['@babel/preset-env', '@babel/preset-react'],
+                    plugins: [
+                        '@babel/plugin-transform-runtime',
+                        '@babel/plugin-proposal-class-properties',
+                    ],
+                },
+            },
+            {loader: 'ts-loader'}
+        ],
       },
     ],
   },

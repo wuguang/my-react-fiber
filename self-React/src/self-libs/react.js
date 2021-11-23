@@ -1,6 +1,6 @@
 import {ELEMENT_TEXT} from './constants';
 import {UpdateQueue,Update} from './updateQueue'
-import { scheduleRoot, useReducer, useState } from './scheduler';
+import { scheduleRoot, } from './scheduler';
 /**
  * 创建元素（虚拟DOM）的方法
  * @param {*} type  元素的类型 div span p
