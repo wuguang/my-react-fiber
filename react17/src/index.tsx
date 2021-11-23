@@ -65,6 +65,8 @@ ReactDom.render(<>
 
 
 
+<<<<<<< HEAD
+=======
 /*
 <SetTimer />
 <SetTimer02 />
@@ -80,3 +82,4 @@ createRoot(root).render(<ConcurrentMode>
 
 
 */
+>>>>>>> f0b6e07a05e44be33f9021513d0ef4e22cf7164f

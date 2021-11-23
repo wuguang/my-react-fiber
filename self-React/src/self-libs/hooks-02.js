@@ -88,3 +88,48 @@ function mountEffect(create,deps){
 function areHookInputsEqual(nextDeps, prevDeps){
     return JSON.stringify(nextDeps) === JSON.stringify(prevDeps);
 }
+
+
+const update = {
+    value:0,
+    next:{
+
+    }
+}
+
+const queue = {
+    lastRenderedReducer:()=>{},
+    lastRenderedState:12,
+    pending:{
+        value:12,
+        next:{
+
+        }
+    }
+}
+
+const pending = queue.pending;
+
+if(pending === null){
+    update.next = update;
+}else{
+    update.next = pending.next;
+    pending.next = update;
+}
+
+
+const eagerState = lastRenderedReducer(currentState,action);
+if(is(eagerState,currentState)){
+    return;
+}
+
+
+let baseQueue = {
+    value:12,
+    next:null
+};
+
+
+
+
+
