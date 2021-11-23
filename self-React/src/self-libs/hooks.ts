@@ -68,6 +68,11 @@ type SharedQueue<State>= {
     lanes: any;
 }
 
+type Dispatcher = {
+    useState:Function;
+    useEffect:Function;
+}
+
 let currentlyRenderingFiber:Fiber = null;
 let ReactCurrentDispatcher = {
     current:null,
@@ -312,7 +317,28 @@ function  scheduleUpdateOnFiber(fiber){
     //......
 }
 
-export {
+function resolveDispatcher() {
+    const dispatcher = ReactCurrentDispatcher.current;
+
+    return dispatcher;
+}
+
+export function useState<S>(initialState: (() => S) | S): [S, Dispatch<BasicStateAction<S>>] {
+    const dispatcher = resolveDispatcher();
+    return dispatcher.useState(initialState);
+}
+
+export function useEffect(
+    create: () => (() => void) | void,
+    deps: any[],
+  ): void {
+    const dispatcher = resolveDispatcher();
+    return dispatcher.useEffect(create, deps);
+}
+
+
+
+export default{
     renderWithHooks
 }
 
