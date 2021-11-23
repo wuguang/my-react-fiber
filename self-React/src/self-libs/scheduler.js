@@ -172,9 +172,35 @@ function updateClassComponent(currentFiber) {
 
 function updateHost(currentFiber) {
     if(!currentFiber.stateNode) {//如果此fiber没有创建DOM节点
-        currentFiber.stateNode = createDom(currentFiber);
+        currentFiber.stateNode = createDom(currentFiber);  
     }
-    const newChildren = currentFiber.props.children||[];
+    //文本节点就不用调和了
+    let childVal =  currentFiber.props.children;
+    let typeChild = typeof childVal;
+    if(typeChild === 'string' || typeChild === 'number' ){
+        if(currentFiber.effectTag){
+            currentFiber.stateNode.textContent = currentFiber.props.children + '';
+        }
+        return;
+    }
+
+    let newChildren = [];
+    
+    if(!Array.isArray(currentFiber.props.children)){
+        return;
+    }
+    //currentFiber.props.children||[];
+    currentFiber.props.children.forEach(item=>{
+        if(typeof item === 'string' ){
+            if(item.trim()){
+                newChildren.push(item);
+            }
+        }else{
+            newChildren.push(item);
+        }
+    });
+    //过滤 杂项
+    currentFiber.props.children = newChildren;
     reconcileChildFibers(currentFiber,newChildren);
 }
 
@@ -240,25 +266,28 @@ function reconcileSingleElement(returnFiber,currentFirstChild,newChild){
     //current.children不一定是单个
     //一个已知单节点对一个未知类型的 比较
     //简单粗暴法,类型是否一致，属性
-    let newFiber = null;
+    let newChildFiber = null;
     //是dom节点
     if(currentFirstChild && currentFirstChild.type === newChild.type){
         //可复用fiber
         //第三次或以后
         //fiber 复用
         if(currentFirstChild.alternate){
-            newFiber = useOldFiber(currentFirstChild,newChild,0);
+            newChildFiber = useOldFiber(currentFirstChild,newChild,0);
         }else{
             //第二次
             //fiber对象需新建
-            newFiber = getFiberFromOldFiber(currentFirstChild,newChild,0);
+            newChildFiber = getFiberFromOldFiber(currentFirstChild,newChild,0);
         }
+        returnFiber.child = newChildFiber;
+
         //删除其他 oldFibers 如果有的话
         deleteRemainingChildren(returnFiber.alternate, currentFirstChild);
     }else {
         //第一次更新
         //或新建fiber
-        newFiber = createFiber(returnFiber,newChild,0);
+        newChildFiber = createFiber(returnFiber,newChild,0);
+        returnFiber.child = newChildFiber;
     }
 }
 
@@ -300,9 +329,8 @@ function getFiberFromOldFiber(oldChildFiber,newChild,index){
     let effectTag = null;
     if(typeof newChild.type === 'string'){
         effectTag = diffProperties(oldChildFiber,newChild)?null:UPDATE;
-    } 
-
-    return {
+    }
+    let newFiber_02 = {
         key:newChild.key||index,
         tag:oldChildFiber.tag,
         type:oldChildFiber.type,
@@ -316,6 +344,8 @@ function getFiberFromOldFiber(oldChildFiber,newChild,index){
         nextEffect:null,//effect list也是一个单链表 顺序和完成顺序一样 节点可能会少
         index:index,
     }
+
+    return newFiber_02;
 }
 
 function createFiber(returnFiber,newChild,index){
@@ -360,7 +390,7 @@ function useOldFiber(oldChildFiber,newChild,index){
 function reconcileChildrenArray(returnFiber, currentFirstChild, newChildren){
     let newIndex = 0; //
     let oldReturnFiber = returnFiber.alternate;
-    let oldChildFiber = oldReturnFiber.child;
+    let oldChildFiber = (oldReturnFiber && oldReturnFiber.child) ||null;
     let newChild = newChildren[newIndex];
     let prevNewFiber = null;
 
@@ -375,23 +405,27 @@ function reconcileChildrenArray(returnFiber, currentFirstChild, newChildren){
     //校验 newChildren 是否有 key
     //validChildrenKeys();
     while(newChild && oldChildFiber){
+        newChild.key = newChild.key||newIndex;
         //相同可以复用fiber
         if(newChild.key === oldChildFiber.key && newTag === oldChildFiber.tag){
-            let newFiber = null;
+            let newChildFiber03 = {};
             if(oldChildFiber.alternate){
                 //直接复用
-                newFiber = useOldFiber(oldChildFiber,newChild,newIndex);
+                newChildFiber03 = useOldFiber(oldChildFiber,newChild,newIndex);
             }else{
+                //flags
                 //缓冲
-                newFiber = getFiberFromOldFiber(oldChildFiber,newChild,newIndex);
+                newChildFiber03 = getFiberFromOldFiber(oldChildFiber,newChild,newIndex);
+                console.log(`newFiber=${newChildFiber03}`);
             }
-
+            //newChildFiber03 ={age:'18'};
             lastPlacedIndex = newIndex; 
-            returnFiber.child = newFiber;
-            if(newIndex >0 ){
-                prevNewFiber.sibling = newFiber;
+            if(newIndex ===0){
+                returnFiber.child = newChildFiber03;
+            }else{
+                prevNewFiber.sibling = newChildFiber03;
             }
-            prevNewFiber = newFiber;
+            prevNewFiber = newChildFiber03;
             //进行下次循环
             newIndex ++;
             newChild = newChildren[newIndex]
@@ -404,7 +438,6 @@ function reconcileChildrenArray(returnFiber, currentFirstChild, newChildren){
         }
     }
 
-
     //新children遍历完毕了
     if(newIndex === newChildren.length){
         //如果 oldReturnFiber 还有子节点，则全部删除
@@ -416,13 +449,16 @@ function reconcileChildrenArray(returnFiber, currentFirstChild, newChildren){
     }else if(oldChildFiber === null){
         //剩余的new children继续循环 全部newFiber
         for(let len=newChildren.length; newIndex<len; newIndex++){
-            newFiber = createFiber(returnFiber,newChildren[newIndex],newIndex);
+            let newChildFiber02 = null;
+            newChildFiber02 = createFiber(returnFiber,newChildren[newIndex],newIndex);
             if(newIndex === 0){
-                returnFiber.child = newFiber;
+                returnFiber.child = newChildFiber02;
             }
-            newFiber.return = returnFiber;
-            prevNewFiber.sibling = newFiber;
-            prevNewFiber = newFiber;
+            newChildFiber02.return = returnFiber;
+            if(prevNewFiber){
+                prevNewFiber.sibling = newChildFiber02;
+            }
+            prevNewFiber = newChildFiber02;
         }
         //结束本次调和
         return;
@@ -437,39 +473,49 @@ function reconcileChildrenArray(returnFiber, currentFirstChild, newChildren){
         oldFiberMap.set(oldChildFiber.key,oldChildFiber);
         oldChildFiber = oldChildFiber.sibling;
     }
+    let newChildFiber = null;
 
-    while(newFiber){
-        //创建新fiber
-        if(oldChildFiber.alternate){
-            //直接复用
-            newFiber = useOldFiber(oldChildFiber,newChild,newIndex);
-        }else{
-            //缓冲
-            newFiber = getFiberFromOldFiber(oldChildFiber,newChild,newIndex);
-        }
-
-        if(oldFiberMap.has(newFiber)){
+    //新节点还存在!!
+    //从map里找
+    while(newChild){
+        if(oldFiberMap.has(newChild.props.key)){
+            oldChildFiber = oldFiberMap.get(newChild.props.key);
+            if(oldChildFiber.alternate){
+                //直接复用
+                newChildFiber = useOldFiber(oldChildFiber,newChild,newIndex);
+            }else{
+                //新建复用
+                newChildFiber = getFiberFromOldFiber(oldChildFiber,newChild,newIndex);
+            }
             oldIndex = oldChildFiber.index;
             if(oldIndex<lastPlacedIndex){
                 //就节点需要往右移动
                 //this is move
                 //how to move I don't know ~~
-                //newFiber.effectTag = PLACEMENT;
+                //newChildFiber.effectTag = PLACEMENT;
                 //lastPlacedIndex = oldIndex;
                 //oldFiberMap.find()
+
                 removeNodeForDiff(oldChildFiber,oldReturnFiber,lastPlacedIndex);
+            }else{
+                //重置 lastPlacedIndex的值
+                lastPlacedIndex = oldIndex;
             }
+        }else{
+            newChildFiber = createFiber(returnFiber,newChild,newIndex);
+        }
 
-            //commitPlacement
-            //cebda
-            //acebd
-
-            /*
-            lastplaceIndex = 4;
-            oldIndex = 0;
-            newIndex = 0;
-            */
-        }    
+        newChildFiber.return = returnFiber;
+        if(prevNewFiber){
+            prevNewFiber.sibling = newChildFiber;
+        }
+    
+        //继续循环
+        prevNewFiber = newChildFiber;
+        newIndex ++;
+        newChild = newChildren[newIndex];
+        
+    
     }
     // 2、
 }
@@ -491,7 +537,6 @@ function removeNodeForDiff(oldChildFiber,oldReturnFiber,lastPlacedIndex){
         //临时处理的方案
         oldReturnDomFiber.stateNode.insertBefore(oldChildFiber.stateNode,lastPlacedDomFiber.stateNode);
     }
-
 }
 
 
@@ -513,11 +558,12 @@ function findDomFiberFromLinkedKey(fiber,linkedKey){
 //同级子组件 key的对比
 function reconcileChildFibers(returnFiber,newChildren){
     let oldReturnFiber = returnFiber.alternate||null;
-    let currentFirstChild = oldReturnFiber && oldReturnFiber.child;
-    let isObject = typeof newChildren === 'object' && newChildren !== null;
+    let currentFirstChild = (oldReturnFiber && oldReturnFiber.child)||null
+    let isObject =  (Array.isArray(newChildren) && newChildren.length === 1 && typeof newChildren[0] === 'object');
+    //(typeof newChildren === 'object' && newChildren !== null)
     //是单节点对象
-    //字符串或number的情况？没考虑
     if(isObject){ 
+        newChildren = newChildren[0];
         reconcileSingleElement(returnFiber,currentFirstChild,newChildren);
         return;
     }else if(Array.isArray(newChildren)){
@@ -528,95 +574,6 @@ function reconcileChildFibers(returnFiber,newChildren){
         if(oldFiber) oldFiber.firstEffect = oldFiber.lastEffect = oldFiber.nextEffect = null;
         let prevSibiling;//上一个新的子fiber
         */
-    }
-
-
-
-    let newChildIndex = 0;//新子节点的索引
-    //如果说当前的currentFiber有alternate属性并且alternate有child属性
-    //第二次渲染的时候 workInProgressRoot 有 alternate
-    //而currentRoot还是第一次渲染的结果没有alternate
-    let oldFiber = currentFiber.alternate && currentFiber.alternate.child;
-    if(oldFiber) oldFiber.firstEffect = oldFiber.lastEffect = oldFiber.nextEffect = null;
-    let prevSibiling;//上一个新的子fiber
-    //遍历我们子虚拟DOM元素数组，为每一个虚拟DOM创建子Fiber
-    while(newChildIndex < newChildren.length || oldFiber) {
-        let newChild = newChildren[newChildIndex]; //取出虚拟DOM节点
-        let newFiber;
-        const sameType = oldFiber&&newChild&&oldFiber.type === newChild.type;
-
-        let tag;
-        if(newChild && typeof newChild.type == 'function' && newChild.type.prototype.isReactComponent){
-            tag = TAG_CLASS;
-        }else if(newChild && typeof newChild.type == 'function') {
-            tag = TAG_FUNCTION_COMPONENT;
-        }else if(newChild && newChild.type == ELEMENT_TEXT) {
-            tag = TAG_TEXT;
-        }else if(newChild && typeof newChild.type === 'string') {
-            tag = TAG_HOST;//如果type是字符串，那么这是一个原生DOM节点div
-        }
-        if(sameType) { //说明老fiber和新虚拟DOM类型一样，可以复用，更新即可
-            //关联指针 
-            // 2个不同的fiber
-            if(oldFiber.alternate) {//至少已经更新一次了
-                newFiber = oldFiber.alternate;        
-                newFiber.alternate = oldFiber;
-                newFiber.effectTag = JSON.stringify({...oldFiber.props,children:null}) === JSON.stringify({...newChild.props,children:null}) ? null:UPDATE;
-                newFiber.props = newChild.props;
-                newFiber.updateQueue = oldFiber.updateQueue;
-                newFiber.nextEffect = newFiber.firstEffect = newFiber.lastEffect = null;
-            } else{
-                //第二次，每个fiber 都更新？？
-                //非常粗暴的比较方式
-                newFiber = {
-                    tag:oldFiber.tag,
-                    type:oldFiber.type,
-                    props:newChild.props, //一定要新的
-                    stateNode:  oldFiber.stateNode,//div还没有创建DOM元素
-                    updateQueue: oldFiber.updateQueue,
-                    return: currentFiber,//父Fiber returnFiber
-                    alternate: oldFiber,//让新的fiber的alternate指向老的fiber
-                    effectTag:  JSON.stringify({...oldFiber.props,children:null}) === JSON.stringify({...newChild.props,children:null}) ? null:UPDATE,
-                    //副作用标示，render会收集副作用 增加 删除 更新
-                    nextEffect:null,//effect list也是一个单链表 顺序和完成顺序一样 节点可能会少
-                }
-            }
-        }else{
-            //创建子fiber
-            if(newChild) { //看看新的DOM节点可有child（有可能是null）
-                newFiber = {
-                    tag,
-                    type:   newChild.type,
-                    props:  newChild.props,
-                    stateNode:  null,//div还没有创建DOM元素
-                    return: currentFiber,//父Fiber returnFiber
-                    //updateQueue是挂载在fiber上的
-                    updateQueue: new UpdateQueue(),
-                    effectTag:  PLACEMENT,//副作用标示，render会收集副作用 增加 删除 更新
-                    nextEffect:null,//effect list也是一个单链表 顺序和完成顺序一样 节点可能会少
-                }
-            }
-
-            // 不相同，旧节点需要删除
-            if(oldFiber) {
-                oldFiber.effectTag = DELETION;
-                deletions.push(oldFiber);
-            }
-        }
-        
-        if(oldFiber) {
-            oldFiber = oldFiber.sibling; //oldFiber指针也向后移动一次,为了保持与下次对比
-        }
-        if(newFiber) {
-            //构建父子关系，邻里关系
-            if(newChildIndex == 0) {//如果索引是0，就是大儿子
-                currentFiber.child = newFiber;
-            }else {
-                prevSibiling.sibling = newFiber;//大儿子指向弟弟
-            }
-            prevSibiling = newFiber;
-        }
-        newChildIndex++;
     }
 }
 

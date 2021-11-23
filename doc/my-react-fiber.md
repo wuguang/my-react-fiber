@@ -1,6 +1,3 @@
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [react-Fiber 深入浅出](#react-fiber-%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BA)
   - [react更新界面的基本流程](#react%E6%9B%B4%E6%96%B0%E7%95%8C%E9%9D%A2%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%B5%81%E7%A8%8B)
@@ -92,16 +89,37 @@ JSX执行结果是，虚拟节点数据，在react里我们称之为ReactElement
 ```
 type是原生节点的名称（字符串），或者自定义组件(class/function)本身,type很重要。
 
-后续构建fiber时还有一个tag的属性，来区分时哪种组件的,区分类型的，后面会用到。
+后续构建fiber时还有一个tag、$$typeof、elementType的属性，来区分时哪种组件的,区分类型的，后面会用到,知晓一下。
 
-![react_type](./imgs/react_type.png)
-type 是通过jsx解析得来值，tag是根据类型判断后赋值得到的。
+#### 以上的react的更新渲染流程哪里可能会出现问题，并说你的理由
 
-
-
-#### react的更新流程哪里可能会出现问题
 
 1？2？3？
+
+此处是思考时间...
+
+<div style=="height:500px">... </div>  
+
+
+<div style=="height:500px">... </div> 
+
+
+<div style=="height:500px">... </div> 
+
+
+
+
+
+  
+     
+
+
+
+
+
+
+
+
 
 初始化(更新)state==>执行render()===>得到虚拟dom(reactElement)===》对比新旧dom节点===>对真实dom 做相应的的【增删改】
 当项目存在大量节点时，对比新旧dom节点的必然消耗大量时间，当时间超过一定阈值时，带来浏览器掉帧，可能会出现页面卡顿现象。
@@ -109,7 +127,17 @@ type 是通过jsx解析得来值，tag是根据类型判断后赋值得到的。
 何为掉帧？为什么会造成掉帧？
 浏览器能看到内容发生变化，和动画一个原理，本质上是由一帧一帧的图像构成的，当有新的图片不断连续覆盖旧的图片。
 
+
+#### FPS（frame per second）是浏览器每秒刷新的次数
+
+理论上说，FPS 越高，动画会越流畅，目前大多数设备的屏幕刷新率为 60 次/秒，所以通常来讲 FPS 为 60 frame/s 时动画效果最好，也就是每帧的消耗时间为 16.67ms。
+因为浏览器单线程的设计，当JS执行某项任务超过16.67ms时，由于当前任务未完成，界面无法刷新，必然造成掉帧，或卡死情况。
+
 有 Web 动画那么就会存在该动画在播放运行时的帧率。而帧率在不同设备不同情况下又是不一样的。
+
+
+浏览器一帧需要处理的内容
+![react_type](./imgs/frameLife.png)
 
 认识下 requestAnimationFrame  下一帧执行时，都会执行下，参数里的回调
 
@@ -136,29 +164,28 @@ function getChromeFps(){
 };
     
 ```
-FPS（frame per second）是浏览器每秒刷新的次数
-
-理论上说，FPS 越高，动画会越流畅，目前大多数设备的屏幕刷新率为 60 次/秒，所以通常来讲 FPS 为 60 frame/s 时动画效果最好，也就是每帧的消耗时间为 16.67ms。
-因为浏览器单线程的设计，当JS执行某项任务超过16.67ms时，由于当前任务未完成，界面无法刷新，必然造成掉帧，或卡死情况。
 
 当React项目里有大量节点或组件时，在协调（调和）阶段有可能造成掉帧问题
 
+
 #### demo,示例演示，掉帧情况是什么
-    -----
+    
+    
+----- demo 1 演示
 
 
-### 简化任务，提出解决方案
+#### 简化任务，提出解决方案
 
     1、压缩执行时间？
     2、时间分片。将任务拆分，在每一帧空闲时执行
 
-认识下 requestIdleCallback
+认识下 requestIdleCallback, (react本身用的是message Channel)
 
-浏览器一帧需要处理的内容
-![react_type](./imgs/frameLife.png)
+什么是idle,每一帧可能有剩余的空闲时间,看下的图:
 
-每一帧可能有剩余的空闲时间
 ![react_type](./imgs/frameIdle.png)
+
+![idle](./imgs/idle.png)
 
 
 requestIdleCallback是浏览器提供的API，参数是一个回调函数.
@@ -190,11 +217,11 @@ window.requestIdleCallback(callback[, options])
 
 #### demo,示例演示 requestIdleCallback是界面流畅起来的
 
-    -----
+    ----- demo 2 演示
 
 #### react对fiber的实现
 
-1、使用时间分片，重写了requestIdleCallback
+1、使用时间分片，重写了requestIdleCallback（原因不兼容等）
 2、将虚拟节点树改造成多指针链表
 3、将不可中断的递归遍历改成通过while条件控制可中断的遍历
 
@@ -234,9 +261,11 @@ dfsForElementData(myElementData);
 })()
 ```
 
+
 要求
     1、每个节点进入时输出 ${id}--beginWork,暂停10ms(死循环10ms), 结束时输出${id}，--completeWork. (id不存在的情况用nodeValue替代)
     2、子节点任务全部完成，容器节点才算完成任务
+
 
 #### 体会递归遍历的缺点
 一次性完成，没中断，如果节点很长或节点任务很耗时，将不可避免的阻塞主线程。
@@ -267,7 +296,6 @@ dfsForElementData(myElementData);
 
 通过递归时间分片体会下面2张图的意义：
 
-![idle](./imgs/idle.png)
 
 #### fiber的定义
 上文，递归改链表，同步变合作（忙里偷闲）的策略叫做 Cooperative Scheduling（合作式调度）
@@ -323,52 +351,147 @@ type Fiber = {
 
 #### fiber构建过程
 
-##### 双缓冲
-##### 调和算法
-##### commit 
+    见上以上举例过程
+
+#### 双缓冲
+    WIP 树构建这种技术类似于图形化领域的'双缓存(Double Buffering)'技术, 图形绘制引擎一般会使用双缓冲技术，先将图片绘制到一个缓冲区，再一次性传递给屏幕进行显示，这样可以防止屏幕抖动，优化渲染性能。
+放到React 中，WIP树就是一个缓冲，它在Reconciliation 完毕后一次性提交给浏览器进行渲染。它可以减少内存分配和垃圾回收，WIP 的节点不完全是新的，比如某颗子树不需要变动，React会克隆复用旧树中的子树。
+双缓存技术还有另外一个重要的场景就是异常的处理，比如当一个节点抛出异常，仍然可以继续沿用旧树的节点，避免整棵树挂掉。
+
+
+来自：https://juejin.cn/post/6844903975112671239
+
+
+#### 调和算法（Reconcilation，副作用收集）
+    Reconcilation
+
+###### 单节点对比
+    
 
 ```javascript
-//专业术语对照
-let nextUnitOfWork = null; 
-let workInProgressRoot = null;
-let workInProgressFiber = null; 
-let currentRoot = null; 
-let deletions = []; 
+
+//https://github.com/7kms/react-illustration-series/blob/master/docs/algorithm/diff.md
+// 只保留主干逻辑
+function reconcileSingleElement(
+  returnFiber: Fiber,
+  currentFirstChild: Fiber | null,
+  element: ReactElement,
+  lanes: Lanes,
+): Fiber {
+  const key = element.key;
+  let child = currentFirstChild;
+
+  while (child !== null) {
+    // currentFirstChild !== null, 表明是对比更新阶段
+    if (child.key === key) {
+      // 1. key相同, 进一步判断 child.elementType === element.type
+      switch (child.tag) {
+        // 只看核心逻辑
+        default: {
+          if (child.elementType === element.type) {
+            // 1.1 已经匹配上了, 如果有兄弟节点, 需要给兄弟节点打上Deletion标记
+            deleteRemainingChildren(returnFiber, child.sibling);
+            // 1.2 构造fiber节点, 新的fiber对象会复用current.stateNode, 即可复用DOM对象
+            const existing = useFiber(child, element.props);
+            existing.ref = coerceRef(returnFiber, child, element);
+            existing.return = returnFiber;
+            return existing;
+          }
+          break;
+        }
+      }
+      // Didn't match. 给当前节点点打上Deletion标记
+      deleteRemainingChildren(returnFiber, child);
+      break;
+    } else {
+      // 2. key不相同, 匹配失败, 给当前节点打上Deletion标记
+      deleteChild(returnFiber, child);
+    }
+    child = child.sibling;
+  }
+
+  {
+    // ...省略部分代码, 只看核心逻辑
+  }
+
+  // 新建节点
+  const created = createFiberFromElement(element, returnFiber.mode, lanes);
+  created.ref = coerceRef(returnFiber, currentFirstChild, element);
+  created.return = returnFiber;
+  return created;
+}
+
+```
+解读以上代码，单节点diff完毕
+
+
+##### 多节点对比
+
+```javascript
+
+function reconcileChildrenArray(
+  returnFiber: Fiber,
+  currentFirstChild: Fiber | null,
+  newChildren: Array<*>,
+  lanes: Lanes,
+): Fiber | null {
+  let resultingFirstChild: Fiber | null = null;
+  let previousNewFiber: Fiber | null = null;
+
+  let oldFiber = currentFirstChild;
+  let lastPlacedIndex = 0;
+  let newIdx = 0;
+  let nextOldFiber = null;
+  // 1. 第一次循环: 遍历最长公共序列(key相同), 公共序列的节点都视为可复用
+  for (; oldFiber !== null && newIdx < newChildren.length; newIdx++) {
+    // 后文分析
+  }
+
+  if (newIdx === newChildren.length) {
+    // 如果newChildren序列被遍历完, 那么oldFiber序列中剩余节点都视为删除(打上Deletion标记)
+    deleteRemainingChildren(returnFiber, oldFiber);
+    return resultingFirstChild;
+  }
+
+  if (oldFiber === null) {
+    // 如果oldFiber序列被遍历完, 那么newChildren序列中剩余节点都视为新增(打上Placement标记)
+    for (; newIdx < newChildren.length; newIdx++) {
+      // 后文分析
+    }
+    return resultingFirstChild;
+  }
+
+  // ==================分割线==================
+  const existingChildren = mapRemainingChildren(returnFiber, oldFiber);
+
+  // 2. 第二次循环: 遍历剩余非公共序列, 优先复用oldFiber序列中的节点
+  for (; newIdx < newChildren.length; newIdx++) {}
+
+  if (shouldTrackSideEffects) {
+    // newChildren已经遍历完, 那么oldFiber序列中剩余节点都视为删除(打上Deletion标记)
+    existingChildren.forEach(child => deleteChild(returnFiber, child));
+  }
+
+  return resultingFirstChild;
+}
+
+//复杂的情况: https://react.iamkasong.com/diff/multi.html#%E5%A4%84%E7%90%86%E7%A7%BB%E5%8A%A8%E7%9A%84%E8%8A%82%E7%82%B9
 ```
 
-
-参考版权
-
+解读代码,多节点更新完毕
 
 
+#### commit （副作用提交）
+    deletion 里的节点全部删除
+    Reconcilation effectList链表,遍历操作dom操作节点，不可中断
 
+#### 参考资料
 
+https://juejin.cn/post/6844903975112671239
+https://react.iamkasong.com/
+https://github.com/7kms/react-illustration-series
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-
-
-
-
-
-    
-
-
-
-#### 真实 react 版演示 16.8.3
-https://btraljic.github.io/sync-async-debounced/
+等等....
 
 
 
@@ -387,3 +510,15 @@ https://btraljic.github.io/sync-async-debounced/
 
 
 
+应用开发中心-技术分享
+
+课程名称：React Fiber
+培训日期：2021/11/19（本周五）下午17:00~18:30
+培训地点：12楼塞纳河
+课时：1.5课时
+讲师：吴广
+培训目标：掌握fiber基本结构及作用，知道diff过程
+
+大家可以看下先了解相关内容：https://wanxiangqukuailian.yuque.com/pw5rob/tk79z2/szcn89
+
+什么是fiber？fiber解决了什么问题？fiber是怎么构建的？react diff过程是怎样的？如果你对以上问题感兴趣可以一起来讨论 @所有人

@@ -1,0 +1,189 @@
+<html>
+    <head>
+        <style>
+        #main-content{
+            width:600px;
+            height:400px;
+            border: 3px solid rgb(189, 189, 189);
+            margin-top:50px;
+            position: relative;
+            
+        }
+        #myInput{
+            width:300px;
+            height:40px;
+            line-height: 40px;
+        }
+
+        #main-content .ball{
+            position: absolute;
+        }
+        </style>
+    <head>
+    <body>
+        <h2>setTimeout Demo</h2>
+        <input id="myInput"/>
+
+        <div id="main-content">
+
+        </div>
+        <script>
+            let $ = id=> document.querySelector(id);
+            let myInput = $('#myInput');
+            let box = $('#main-content');
+            const registEvent =()=>{
+                myInput.addEventListener('input',handleInput,false);
+            }
+
+            class TaskQueue{
+                task = [];
+                constructor(){ 
+
+                }
+
+                addTask(addTaskNum){
+                    this.task =  this.task.concat(Array(addTaskNum).fill('doit'));
+                }
+
+                //完成一条任务
+                completeOneTask(){
+                    //先进先出，从前面删除一个
+                    this.task.shift();
+                }
+
+                //是否有剩余
+                hasTasks(){
+                    return this.task.length>0?true:false;
+                }
+
+                getLength(){
+                    return this.task.length;
+                }
+
+            }
+
+            let taskLen = 0;
+            let allBallStr = '';
+            let taskIsRuning = false;
+            let howManyForOnce = 100;
+            let taskQueue = new TaskQueue();
+            // 时间切片周期, 默认是5ms(如果一个task运行超过该周期, 下一个task执行之前, 会把控制权归还浏览器)
+            let yieldInterval = 5;
+
+            const handleInput = ()=>{
+                //只添加任务
+                //不做任务执行
+                taskQueue.addTask(howManyForOnce);
+            }
+
+            const timeHasRemaining = (startTime)=>{
+                return performance.now() - startTime > yieldInterval?false:true;
+            }
+
+            const doMyTask = ()=>{
+                let startTime = performance.now();
+                //是否有任务
+                //是否超时
+                while(taskQueue.hasTasks() && timeHasRemaining(startTime)){
+                    doSingleTask();
+                }
+
+                setTimeout(doMyTask,0);
+            }
+
+            const doSingleTask = ()=>{
+                let width = Math.random()*100;
+                let radius = width;
+                let color = randomHexColor();
+                let left = Math.random()*(600 - width)
+                let top = Math.random()*(400 - width);
+                let start = performance.now();
+                let target = start + 1;
+                while(start<target){
+                    start = performance.now();
+                }
+                allBallStr += `<div class="ball" style="width:${width}px; height:${width}px; border-radius:${radius}px; background:${color}; left:${left}px; top:${top}px;"> </div>`;
+                //完成一条任务
+                taskQueue.completeOneTask();
+
+                if(taskQueue.getLength()%howManyForOnce === 0){
+                    //没100的整数次更新一次界面
+                    box.innerHTML = allBallStr;
+                    allBallStr = '';
+                }
+            }
+
+            const randomHexColor = ()=>{ //随机生成十六进制颜色
+                 var hex = Math.floor(Math.random() * 16777216).toString(16); //生成ffffff以内16进制数
+                 while (hex.length < 6) { //while循环判断hex位数，少于6位前面加0凑够6位
+                  hex = '0' + hex;
+                 }
+                 return '#' + hex; //返回‘#'开头16进制颜色
+            }
+
+            //异步执行
+            setTimeout(doMyTask,0)
+
+            //第一次初始化
+            handleInput();
+            //执行
+            registEvent();
+
+
+            /*
+
+            //异步任务无限循环
+
+            let num = 0;
+            const infinitLoop = ()=>{
+                num++;
+                setTimeout(infinitLoop,0);
+            }
+            setTimeout(infinitLoop,0);
+
+
+            let num = 0;
+            let channel = new MessageChannel(); 
+            channel.port.postMessage(null);
+            channel.port1 = ()=>{
+                num++;
+                //呼叫自己
+                channel.port.postMessage(null);
+            }
+
+
+            let num = 0;
+            let channel = new MessageChannel(); 
+            channel.port1.postMessage(null);
+            channel.port2 = ()=>{
+                num++;
+                //呼叫自己
+                channel.port.postMessage(null);
+            }
+
+            //可惜 Promise.resolve();不行
+            let num = 0;
+            
+            const infinitLoop = ()=>{
+                num++;
+                Promise.resolve().then(()=>{
+                    //呼叫自己
+                    infinitLoop();
+                });
+            }
+
+            Promise.resolve().then(()=>{
+                //呼叫自己
+                infinitLoop();
+            });
+
+
+            */
+
+            
+
+            
+
+        </script>
+    </body>
+</html>

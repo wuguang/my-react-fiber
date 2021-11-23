@@ -66,38 +66,61 @@
                     <span  key="3">11</span>
                 </React.Fragment>
             }
+
+            /*
+            <p>1</p>
+            <p>2</p>
+            <p>3</p>
+            */
+
+            let one = [{key:'1',name:1},{key:'2',name:2},{key:'3',name:3}];
+            let oneComponent = one.map(item=>{
+                return <p key={item.key}>{item.name}</p>
+            });
+
+            let two = [{key:'3',name:3},{key:'4',name:4},{key:'2',name:2},{key:'1',name:1}];
+            let twoComponent = two.map(item=>{
+                return <p key={item.key}>{item.name}</p>
+            });
+
+            /*
+            123,
+            -->
+            3421,
+
+            1 gua;
+
+                lastPlaceIndex = 0;
+            2   3 Index = 2;
+                lastPlaceIndex = 2;
+
+                4--> new;
+                --> 2;
+                lastPlaceIndex = 3;
+
+                2 Index = 1;
+                lastPlaceIndex = 3;
+                342
+
+                1Index = 0;
+                lastPlaceIndex = 3;
+                3421
+
+                {
+                    (new Array(3)).fill(1).map((item,index)=>{
+                        return <p>{index}</p>
+                    })
+                }
+            */
+
             
             return <div id="out">
-                {   show?
-                    <React.Fragment><One/><Two/></React.Fragment>:
-                    <React.Fragment><Two/><One/></React.Fragment>
-                }
+                <div id="test_container">
+                    {show?oneComponent:twoComponent}
+                </div>
                 <button onClick={triggleShow}>+ click me +</button>
             </div>
         }
-
-        /*
-
-        <h1 id="h1">I am h1</h1>
-        <div id="h2_container">
-            {
-                Array(3).fill(1).map(item=>{
-                    return <h2>
-                        <button onClick={triggleShow}>+ click me +</button>
-                    </h2>
-                })
-            }
-        </div>
-
-
-        <ul>
-            {
-                Array(7).fill(1).map(item=>{
-                    return <li>{item}</li>
-                })
-            }
-        </ul>
-        */
 
 
         ReactDom.render(<Main/>,root);
@@ -106,54 +129,3 @@
     
     
 </html>
-
-<!-- 
-    
-if ( (unitOfWork.mode & ProfileMode) !== NoMode) {
-    startProfilerTimer(unitOfWork);
-    next = beginWork$1(current, unitOfWork, subtreeRenderLanes);
-    stopProfilerTimerIfRunningAndRecordDelta(unitOfWork, true);
-  } else {
-    next = beginWork$1(current, unitOfWork, subtreeRenderLanes);
-  }
-
-  resetCurrentFiber();
-  unitOfWork.memoizedProps = unitOfWork.pendingProps;
-
-  if (next === null) {
-    // If this doesn't spawn new work, complete the current work.
-    completeUnitOfWork(unitOfWork);
-  } else {
-    workInProgress = next;
-  }
-
-
-
-
-
-    if (oldProps !== newProps || hasContextChanged() || ( // Force a re-render if the implementation changed due to hot reload:
-        workInProgress.type !== current.type )) {
-
-
-    if ((completedWork.flags & Incomplete) === NoFlags) {
-
-
-
-    var flags = completedWork.flags; 
-
-    updateHostComponent$1 = function (current, workInProgress, type, newProps, rootContainerInstance) {
-
-
-    if (typeof newProps.children !== typeof oldProps.children && (typeof newProps.children === 'string' || typeof newProps.children === 'number')) {
-        var string = '' + newProps.children;
-        var ownAncestorInfo = updatedAncestorInfo(hostContextDev.ancestorInfo, type);
-        validateDOMNesting(null, string, ownAncestorInfo);
-    }
-
-   return diffProperties(domElement, type, oldProps, newProps);
-
-   function diffProperties(domElement, tag, lastRawProps, nextRawProps, rootContainerElement) {
-
-
-   markUpdate(workInProgress);
--->

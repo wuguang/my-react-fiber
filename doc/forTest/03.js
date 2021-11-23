@@ -1,14 +1,3 @@
-<html>
-    <head>
-        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-		<meta http-equiv="content-type" content="text/html;charset=utf-8">
-		<meta content="always" name="referrer">
-    </head>
-    <body>
-        <h1>hello world~~</h1>
-    </body>
-    <script type="javascript/text" >
-
 let myElementData = {
     "type":"div",
     "props":{
@@ -33,5 +22,5 @@ function dfsForElementData(myElementData){
     console.log(`id chu zhan = ${id}`);
 
 }
-    </script>
-</html>
+
+dfsForElementData(myElementData);

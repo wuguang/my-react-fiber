@@ -21,7 +21,7 @@
         </style>
     <head>
     <body>
-        <h2>similar-Fiber Demo</h2>
+        <h2>MessageChannel Demo</h2>
         <input id="myInput"/>
 
         <div id="main-content">
@@ -69,6 +69,12 @@
             let taskIsRuning = false;
             let howManyForOnce = 100;
             let taskQueue = new TaskQueue();
+            // 时间切片周期, 默认是5ms(如果一个task运行超过该周期, 下一个task执行之前, 会把控制权归还浏览器)
+            let yieldInterval = 5;
+            const channel = new MessageChannel();
+            const port = channel.port2;
+
+            
             
             const handleInput = ()=>{
                 //只添加任务
@@ -76,22 +82,18 @@
                 taskQueue.addTask(howManyForOnce);
             }
 
-            const doMyTask = (deadLine)=>{
+            const timeHasRemaining = (startTime)=>{
+                return performance.now() - startTime > yieldInterval?false:true;
+            }
+
+            const doMyTask = ()=>{
+                let startTime = performance.now();
                 //是否有任务
                 //是否超时
-                while(taskQueue.hasTasks() && deadLine.timeRemaining()>2){
+                while(taskQueue.hasTasks() && timeHasRemaining(startTime)){
                     doSingleTask();
                 }
-
-                /*
-                //任务完成或者超时
-                if(taskQueue.hasTasks()){
-                    requestIdleCallback(doMyTask);
-                }
-                */
-
-                //有没有任务都执行一次
-                requestIdleCallback(doMyTask);
+                port.postMessage(null);
             }
 
             const doSingleTask = ()=>{
@@ -124,7 +126,11 @@
                  return '#' + hex; //返回‘#'开头16进制颜色
             }
 
-            requestIdleCallback(doMyTask);
+
+            
+            channel.port1.onmessage = doMyTask;
+
+            port.postMessage(null);
 
             //第一次初始化
             handleInput();

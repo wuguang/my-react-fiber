@@ -80,23 +80,25 @@ class Test01 extends React.Component {
         </div>
     } 
 }
-
-const Test02 = ()=>{
-    const [number,setNumber] = useState(0);
-
-    const addNum = ()=>{
-        setNumber(number + 1);
+class Test02 extends React.Component{
+    state = {
+        number:0
     }
 
-    useEffect(()=>{
-        //setNumber(3);
-    },[]);
+    addNum = ()=>{
+        this.setState({
+            number:this.state.number+1
+        });
+    }
 
-    return <div> 
-        <p> hello </p>
-        <p id="number">{number}</p>
-        <p> <button onClick={ ()=>{addNum()}} > number ++ </button></p>
-    </div>
+    render(){
+        return <div> 
+            <p> hello </p>
+            <p id="number">{this.state.number}</p>
+            <p> <button onClick={ this.addNum } > number ++ </button></p>
+        </div>
+    } 
 }
+
 
 ReactDOM.render(<Test02 />,document.getElementById("root"));
