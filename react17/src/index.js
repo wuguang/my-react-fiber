@@ -42,7 +42,6 @@ class Test02 extends React.Component{
             <p> <button onClick={ this.addNum } > number ++ </button></p>
         </div>
     }
-
 }
 
 

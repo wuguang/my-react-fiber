@@ -18,6 +18,13 @@ interface Hook{
     next: Hook|null;
 }
 
+export type Effect = {
+    tag: string;
+    create: () => (() => void) | void,
+    destroy: (() => void) | void,
+    deps: any[],
+    next: Effect,
+};
 
 /*
 源码结构
@@ -73,6 +80,28 @@ type Dispatcher = {
     useEffect:Function;
     useReducer:Function;
 }
+
+export type FunctionComponentUpdateQueue = {
+    lastEffect: Effect | null,
+    stores: any []| null,
+};
+
+const NoFlags = /*   */ 0b0000;
+
+// Represents whether effect should fire.
+const HookHasEffect = /* */ 0b0001;
+
+// Represents the phase in which the effect (not the clean-up) fires.
+const Insertion = /*  */ 0b0010;
+const Layout = /*    */ 0b0100;
+const Passive = /*   */ 0b1000;
+
+/*
+HasEffect as HookHasEffect,
+Layout as HookLayout,
+Passive as HookPassive,
+Insertion as HookInsertion,
+*/
 
 let currentlyRenderingFiber:Fiber = null;
 let ReactCurrentDispatcher = {
@@ -167,8 +196,91 @@ function basicStateReducer<S>(state: S, action: BasicStateAction<S>): S {
     return typeof action === 'function' ? action(state) : action;
 }
 
-function mountEffect(){
+function mountEffect(create,deps){
+    const hook = mountWorkInProgressHook();
+    const nextDeps = deps === undefined ? null : deps;
+    //currentlyRenderingFiber.effectTag |= UpdateEffect | PassiveEffect;
+    
+    hook.memoizedState = pushEffect( 
+        HookHasEffect | hookEffectTag, 
+        create, // useEffect 第一次参数，就是副作用函数
+        undefined, 
+        nextDeps, // useEffect 第二次参数，deps    
+    );
+    
+}
 
+function pushEffect(tag, create, destroy, deps) {
+    // 1. 创建effect对象
+    const effect: Effect = {
+        tag,
+        create,
+        destroy,
+        deps,
+        next:null,
+    };
+
+    //implement by myself
+    let componentUpdateQueue = currentlyRenderingFiber.updateQueue;
+    if(componentUpdateQueue == null){
+        //初始话updateQueue
+        componentUpdateQueue = {
+            lastEffect: null,
+            stores: null,
+        };
+        componentUpdateQueue.lastEffect = effect;
+        effect.next = effect;
+    }else{
+        let lastEffect = componentUpdateQueue.lastEffect;
+        //防止为null, 和初始化保持一致
+        if(lastEffect === null){
+            componentUpdateQueue.lastEffect = effect;
+            effect.next = effect;
+        }else{
+            let firstEffect = lastEffect.next;
+            //更新指针， 2 进 1 出
+            //lastEffect->(next)->effect;
+            //updateQueue->(lastEffect)->effect;
+            //effect -> (next)->firstEffect;
+            lastEffect.next = effect;
+            effect.next = firstEffect;
+            //为什么要指向 effect  ??????
+            componentUpdateQueue.lastEffect = effect;
+        }
+    }
+    //new effect!!!! 
+    return effect;
+
+    /*
+    // 2. 把effect对象添加到环形链表末尾
+    let componentUpdateQueue = currentlyRenderingFiber.updateQueue;
+    if (componentUpdateQueue === null) {
+        // 新建 workInProgress.updateQueue 用于挂载effect对象
+        // new一个
+        componentUpdateQueue = {
+            lastEffect: null,
+            stores: null,
+        };
+
+        currentlyRenderingFiber.updateQueue = componentUpdateQueue;
+        // updateQueue.lastEffect是一个环形链表
+        //第一次 自己指向自己
+        componentUpdateQueue.lastEffect = effect.next = effect;
+    } else {
+        //啥啥啥.....这里.....
+        const lastEffect = componentUpdateQueue.lastEffect;
+        if (lastEffect === null) {
+            componentUpdateQueue.lastEffect = effect.next = effect;
+        } else {
+            const firstEffect = lastEffect.next;
+            lastEffect.next = effect;
+            effect.next = firstEffect;
+            componentUpdateQueue.lastEffect = effect;
+        }
+    }
+    // 3. 返回effect
+    return effect;
+    */
 }
 
 function mountReducer(){
@@ -320,8 +432,14 @@ function  scheduleUpdateOnFiber(fiber){
 
 function resolveDispatcher() {
     const dispatcher = ReactCurrentDispatcher.current;
-
     return dispatcher;
+}
+
+function createFunctionComponentUpdateQueue(): FunctionComponentUpdateQueue {
+    return {
+        lastEffect: null,
+        stores: null,
+    };
 }
 
 export function useState<S>(initialState: (() => S) | S): [S, Dispatch<BasicStateAction<S>>] {
