@@ -1,14 +1,8 @@
 
-
-/*
 import React from './self-libs/react';
 import ReactDOM from './self-libs/react-dom';
-*/
 
-import React from 'react';
-import ReactDOM from 'react-dom';
-
-import MainPage from './components/mainPage.jsx';
+//import MainPage from './components/mainPage.jsx';
 
 const {useState,useEffect} = React;
 
@@ -35,11 +29,6 @@ class Test02 extends React.Component{
         number:0
     }
 
-    constructor(props){
-        super(props);
-        alert('hello world~~~')
-    }
-
     addNum = ()=>{
         this.setState({
             number:this.state.number+1
@@ -57,6 +46,10 @@ class Test02 extends React.Component{
 }
 
 
-ReactDOM.render(<Test02 />,document.getElementById("root"));
+
+
+ReactDOM.render(<Test02 />,document.getElementById("react-fiber-root"));
+
+document.getElementById("react-fiber-root").innerHTML = '<h2>hello world~~</h2>'
 
 

@@ -14,9 +14,9 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.(js|jsx)$/,
+        test: /\.(js|jsx|ts|tsx)$/,
         exclude: /(node_modules|bower_components)/,
-        use: {
+        use: [{
           loader: 'babel-loader',
           options: {
             presets: ['@babel/preset-env', '@babel/preset-react'],
@@ -25,7 +25,9 @@ module.exports = {
               '@babel/plugin-proposal-class-properties',
             ],
           },
-        },
+        },{
+            loader: 'ts-loader'
+        }],
       },
     ],
   },

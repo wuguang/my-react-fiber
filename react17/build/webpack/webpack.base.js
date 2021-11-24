@@ -8,7 +8,7 @@ const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 module.exports = {
     context: sourcePath,
     entry: {
-        index: path.resolve(__dirname, `../../src/index.tsx`)
+        index: path.resolve(__dirname, `../../src/index.js`)
     },
     output: {
         filename: '[name].js',
@@ -22,7 +22,7 @@ module.exports = {
         rules: [
             //.ts, .tsx 后缀文件
             {
-                test: /\.tsx?$/,
+                test: /\.(ts|tsx)$/,
                 use: [{
                         loader: 'babel-loader',
                         options: {
@@ -31,6 +31,18 @@ module.exports = {
                         }
                     },
                     { loader: 'ts-loader' }
+                ]
+            },
+             //.ts, .tsx 后缀文件
+             {
+                test: /\.(js|jsx)$/,
+                use: [{
+                        loader: 'babel-loader',
+                        options: {
+                            plugins: [],
+                            presets:["@babel/preset-react","@babel/preset-env"]
+                        }
+                    }
                 ]
             },
             //.css后缀文件

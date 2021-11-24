@@ -29,8 +29,7 @@ module.exports = merge(common, {
             minify: {
                 removeComments: true,
             },
-        }),
-    ],
+    }),
     new CleanWebpackPlugin(),
   ],
 });

@@ -7,6 +7,9 @@ const common = require('./webpack.common.config.js');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const path = require('path');
+
+console.log(path.resolve(__dirname, '../public/index.html'));
 
 module.exports = merge(common, {
     mode: 'production',
@@ -22,15 +25,14 @@ module.exports = merge(common, {
       ],
     },
     plugins: [
-      new HtmlWebpackPlugin({
-              template: '../public/index.html',
-              filename: 'index.html',
-              inject: 'body',
-              minify: {
-                  removeComments: true,
-              },
-          }),
-      ],
-      new CleanWebpackPlugin()
+       new HtmlWebpackPlugin({
+            template: path.resolve(__dirname, '../public/index.html'),
+            filename: 'index.html',
+            inject: 'body',
+            minify: {
+                removeComments: true,
+            },
+        }),
+        new CleanWebpackPlugin()
     ]
 });

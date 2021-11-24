@@ -24,11 +24,11 @@ module.exports = merge(common, {
       },
     ],
   },
-  plugins: [
-    new HtmlWebpackPlugin({
-      template: 'public/index.html',
-      inject: 'body',
-      hash: false,
-    }),
-  ],
+    plugins: [
+        new HtmlWebpackPlugin({
+            template: path.resolve(__dirname, '../public/index.html'),
+            inject: 'body',
+            hash: false,
+        }),
+    ],
 });
