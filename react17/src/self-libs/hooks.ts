@@ -90,11 +90,10 @@ const NoFlags = /*   */ 0b0000;
 
 // Represents whether effect should fire.
 const HookHasEffect = /* */ 0b0001;
-
 // Represents the phase in which the effect (not the clean-up) fires.
-const Insertion = /*  */ 0b0010;
-const Layout = /*    */ 0b0100;
-const Passive = /*   */ 0b1000;
+const HookInsertion = /*  */ 0b0010;
+const HookLayout = /*    */ 0b0100;
+const HookPassive = /*   */ 0b1000;
 
 /*
 HasEffect as HookHasEffect,
@@ -146,7 +145,7 @@ function dispatchAction<A,State>(fiber:Fiber, queue:UpdateQueue<State,A>, action
         update.next = update;
     } else {  /* 已经有带更新任务 */
         //构建环状链表
-        update.next = queue.pending;
+        update.next = queue.pending.next;
         queue.pending.next = update;
     }
     queue.pending = update;
@@ -158,7 +157,7 @@ function dispatchAction<A,State>(fiber:Fiber, queue:UpdateQueue<State,A>, action
        return 
     }
 
-    //开始下一轮调度
+    //发起调度 开始下一轮调度
     scheduleUpdateOnFiber(fiber);   
 }
 
@@ -202,12 +201,11 @@ function mountEffect(create,deps){
     //currentlyRenderingFiber.effectTag |= UpdateEffect | PassiveEffect;
     
     hook.memoizedState = pushEffect( 
-        HookHasEffect | hookEffectTag, 
+        HookHasEffect, 
         create, // useEffect 第一次参数，就是副作用函数
         undefined, 
         nextDeps, // useEffect 第二次参数，deps    
     );
-    
 }
 
 function pushEffect(tag, create, destroy, deps) {
@@ -220,7 +218,8 @@ function pushEffect(tag, create, destroy, deps) {
         next:null,
     };
 
-    //implement by myself
+    //进入环状链表
+    // implement by myself
     let componentUpdateQueue = currentlyRenderingFiber.updateQueue;
     if(componentUpdateQueue == null){
         //初始话updateQueue
@@ -244,7 +243,6 @@ function pushEffect(tag, create, destroy, deps) {
             //effect -> (next)->firstEffect;
             lastEffect.next = effect;
             effect.next = firstEffect;
-            //为什么要指向 effect  ??????
             componentUpdateQueue.lastEffect = effect;
         }
     }

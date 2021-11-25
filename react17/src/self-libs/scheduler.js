@@ -144,11 +144,46 @@ function beginWork(currentFiber) {
 function updateFunctionComponent(currentFiber) {
     //需在renderWidthHooks里执行
     //renderWithHooks(currentFiber.alternate||null,currentFiber,currentFiber.type,currentFiber.props);
-    
     workInProgressFiber = currentFiber;
     let newChildren = renderWithHooks(currentFiber.alternate,workInProgressFiber,currentFiber.type,currentFiber.props);
     reconcileChildFibers(currentFiber,newChildren);
-    
+    //提前执行  !!!!
+    if(workInProgressFiber.updateQueue && workInProgressFiber.updateQueue.lastEffect){
+        let preFristEffect = currentFiber && currentFiber.updateQueue.lastEffect.next;
+        let preNextEffect = preFristEffect;
+        let firstEffect = workInProgressFiber.updateQueue.lastEffect.next;
+        let nextEffect = firstEffect;
+
+        do{
+            let {create,destroy,deps} = nextEffect;
+            //对比 deps 不同即执行
+            if(!is(deps,preNextEffect.deps)){
+                //执行useEffect内容
+                //effect里有dispater更新状态等等
+                nextEffect.destroy = create();
+            }
+            //effect是一一对应的
+            nextEffect = nextEffect.next;
+            preNextEffect = nextEffect.next;
+        }while(firstEffect !== nextEffect);
+
+        //执行updateState
+        let firstHook = workInProgressFiber.memoizedState;
+        let queue = Hook.queue.pending;
+
+        //执行
+
+
+
+
+        /*
+        if(firstEffect !== nextEffect){
+            nextEffect = nextEffect.next;
+        }
+        */
+    }
+
+    //执行 function component 的effect hook effect等等；
     /*
     hookIndex = 0;
     workInProgressFiber.hooks = [];
@@ -565,6 +600,7 @@ function reconcileChildFibers(returnFiber,newChildren){
     let currentFirstChild = (oldReturnFiber && oldReturnFiber.child)||null
     let isObject =  (Array.isArray(newChildren) && newChildren.length === 1 && typeof newChildren[0] === 'object');
     //(typeof newChildren === 'object' && newChildren !== null)
+    
     //是单节点对象
     if(isObject){ 
         newChildren = newChildren[0];
@@ -572,12 +608,6 @@ function reconcileChildFibers(returnFiber,newChildren){
         return;
     }else if(Array.isArray(newChildren)){
         reconcileChildrenArray(returnFiber, currentFirstChild, newChildren);
-        /*
-        let newChildIndex = 0; //新子节点的索引
-        let oldFiber = currentFiber.alternate && currentFiber.alternate.child;
-        if(oldFiber) oldFiber.firstEffect = oldFiber.lastEffect = oldFiber.nextEffect = null;
-        let prevSibiling;//上一个新的子fiber
-        */
     }
 }
 
@@ -628,13 +658,16 @@ function commitRoot() {
 
 function commitWork(currentFiber) {
     if(!currentFiber) return;
+    //currentFiber.type === 
+
     let returnFiber = currentFiber.return;
     
     while(returnFiber.tag !== TAG_HOST && 
         returnFiber.tag !== TAG_ROOT &&
         returnFiber.tag !== TAG_TEXT ) {
-            returnFiber = returnFiber.return;
-        }
+        
+        returnFiber = returnFiber.return;
+    }
     //找真实的dom父节点
     let domReturn = returnFiber.stateNode;
 
@@ -659,7 +692,6 @@ function commitWork(currentFiber) {
     }else if(currentFiber.effectTag === DELETION) {//删除节点
         return commitDeletion(currentFiber,domReturn);
     }else if(currentFiber.effectTag === UPDATE) {
-
         if(currentFiber.type === ELEMENT_TEXT) {
             //currentFiber.alternate 指向对应的旧的文本节点
             //后续跟进
