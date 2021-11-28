@@ -104,20 +104,34 @@ function TestHooks(){
     const [height,setHeight] = useState(180);
 
     useEffect(()=>{
-        setName(`${name}+one`);
-    },[num])
+        setName(`will_${num}`);
+        //{value:1}->{value:2}->{num+1}->{num+2}
+    },[num]);
+
+    useEffect(()=>{
+        console.log(`num = ${num}---name = ${name}`);
+    },[name]);
+
+    useEffect(()=>{
+        console.log('height = ${height}');
+    },[]);
+
 
     const addOne = ()=>{
         setNum(num+1);
+        setNum(num+2);
+        setNum(num=> num+1);
+        setNum(num=> num+2);
     }
 
     return <div>
-        
-        <h2>num = {num}</h2>
-        <h3>name = ${name}</h3>
-        <h3>height = ${height}</h3>
 
-        <button onClick={addOne}> click me plus one ~ </button>    
+        <h2>num = {num}</h2>
+        <h3>name = {name}</h3>
+        <h3>height = {height}</h3>
+
+        <button onClick={addOne}> click me plus one ~ </button>   
+
     </div>
 
 }

@@ -16,7 +16,7 @@ bail out react解释对比后没有改动，自动退出
 所有use开头的函数
 fiber.memoriedState = {
     memoizedState:1,
-    queue:UpdateQueue
+    queue:UpdateQueue,
     next:newHook|null
 }
 
@@ -27,7 +27,16 @@ fiber.memoriedState = {
 
 
 #### useState，dispather 的更新
-hook.queue是一个环状链表
+hook.queue是一个环状链表,要特殊处理下, 底层是基本信息,真正的update存放在peding上
+```javascript
+{
+    pending: null,
+    dispatch: null,
+    lastRenderedReducer: basicStateReducer,
+    lastRenderedState: initialState
+};
+```
+
 update 是更新的对象
 
 
