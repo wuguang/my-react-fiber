@@ -10,8 +10,6 @@ interface root {
         
         _reactRootContainer:_reactRootContainer;
     }
-    
-    
 }
 
 

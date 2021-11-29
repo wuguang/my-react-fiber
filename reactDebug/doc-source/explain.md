@@ -20,13 +20,32 @@ fiber.memoriedState = {
     next:newHook|null
 }
 
+hook.queue 是个环状链表，环的拼接在dispatchAction里完成的！！
+通过disptcher，  function dispatchAction(fiber, queue, action) {
+执行链接的
+
+hook.baseQueu 和 hook.queue.pedding的关系如何？
+
 
 
 #### effect以 Fiber.updateQueue的方式 环状链表的存储
+lastEffect,就是updateQueue的对象的缓冲
+componentUpdateQueue.lastEffect = effect.next = effect;
 在commit时候执行，打上标记
+
+是在pushEffect上实现的，链表指针的实现
+2进1出,构成环状链表
+lastEffect.next = effect;
+updateQueue.lastEffect = effect;
+effect.next = firstEffect;
+
+
 
 
 #### useState，dispather 的更新
+
+Effect是个环状链表
+
 hook.queue是一个环状链表,要特殊处理下, 底层是基本信息,真正的update存放在peding上
 ```javascript
 {
@@ -38,6 +57,8 @@ hook.queue是一个环状链表,要特殊处理下, 底层是基本信息,真正
 ```
 
 update 是更新的对象
+
+
 
 
 
