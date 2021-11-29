@@ -122,8 +122,19 @@
             </div>
         }
 
+        const Counter = ()=>{
+            const [num,setNum] = useState(0);
+            const clickFun = ()=>{
+                setNum(num+1);
+            }
+            return <div>
+                <h1>{num}</h1>   
+                <button onClick = {clickFun}> addOne </button> 
+            </div>
+        }
 
-        ReactDom.render(<Main/>,root);
+
+        ReactDom.render(<Counter/>,root);
 
     </script>
     
