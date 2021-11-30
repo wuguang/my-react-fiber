@@ -129,7 +129,6 @@ function TestHooks(){
         <h2>num = {num}</h2>
         <h3>name = {name}</h3>
         <h3>height = {height}</h3>
-
         <button onClick={addOne}> click me plus one ~ </button>   
 
     </div>
