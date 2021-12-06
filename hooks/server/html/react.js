@@ -1,3 +1,27 @@
+function createElement(type,config,...children) {
+    let validChildren = [];
+    //校验子节点的合法性
+    children.forEach(child=>{
+        if(child !== null && child !== undefined){
+            validChildren.push(child);
+        }
+    });
+
+    if(validChildren.length === 1){
+        //构造单节点元素
+        //children 不一定是数组，可能是数字等等
+        validChildren = validChildren[0];
+    }
+
+    return {
+        type,
+        props:{
+            ...config,//属性扩展 id，key
+            children:validChildren
+        }
+    }
+}
+
 
 export function setProps(dom,oldProps,newProps) {
     for(let key in oldProps){
@@ -44,3 +68,10 @@ function setProp(dom,key,value) {
     }
     return dom;
 }
+
+
+const React = {
+    createElement
+}
+
+export default React;

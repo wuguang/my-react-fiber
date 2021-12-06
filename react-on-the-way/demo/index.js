@@ -2,15 +2,23 @@ import {React, ReactDOM} from '../packages';
 
 const {useState, useEffect} = React;
 
-function App({name}) {
+function App() {
+    const [name,setName] = useState('');
     const [num,setNum] = useState(0);
+    const [age,setAge] = useState(18);
 
-    const btnClick = ()=>{
-        setNum(num=>{
-            return num + 1;
-        });
 
-        console.log('hello world~~');
+    useEffect(() => {
+        setName(name + '_'+num);
+    }, [num]);
+
+    useEffect(() => {
+        setNum(num+1);
+    }, [age]);
+
+
+    const btnClick = ()=>{ 
+        setAge(age + 1);
     }
 
     /*
@@ -28,6 +36,9 @@ function App({name}) {
 
     return <div>
         <p>{num}</p>
+        <h2>
+            name = ${name}---num = ${num}---- age = ${age}
+        </h2>
         <div>
             <button onClick={btnClick}>click</button>
         </div>
