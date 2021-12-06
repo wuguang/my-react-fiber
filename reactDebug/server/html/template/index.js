@@ -40,52 +40,27 @@ function Main(){
         </React.Fragment>
     }
 
-    /*
-    <p>1</p>
-    <p>2</p>
-    <p>3</p>
-    */
 
     let one = [{key:'1',name:1},{key:'2',name:2},{key:'3',name:3}];
+    //let oneComponent = <p key="3">--My one---</p>;
     let oneComponent = one.map(item=>{
         return <p key={item.key}>{item.name}</p>
     });
+    
+    //[{key:'2',name:2},{key:'3',name:3},{key:'1',name:1},{key:'4',name:4}]
+
 
     let two = [{key:'3',name:3},{key:'4',name:4},{key:'2',name:2},{key:'1',name:1}];
     let twoComponent = two.map(item=>{
         return <p key={item.key}>{item.name}</p>
     });
 
+
     /*
-    123,
-    -->
-    3421,
-
-    1 gua;
-
-        lastPlaceIndex = 0;
-    2   3 Index = 2;
-        lastPlaceIndex = 2;
-
-        4--> new;
-        --> 2;
-        lastPlaceIndex = 3;
-
-        2 Index = 1;
-        lastPlaceIndex = 3;
-        342
-
-        1Index = 0;
-        lastPlaceIndex = 3;
-        3421
-
-        {
-            (new Array(3)).fill(1).map((item,index)=>{
-                return <p>{index}</p>
-            })
-        }
+    1,2,3
+    ===>
+    3  3,
     */
-
     
     return <div id="out">
         <div id="test_container">
@@ -136,4 +111,4 @@ function TestHooks(){
 }
 
 
-ReactDom.render(<TestHooks/>,root);
+ReactDom.render(<Main/>,root);
