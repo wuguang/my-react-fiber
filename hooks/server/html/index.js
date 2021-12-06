@@ -20,14 +20,14 @@ function myBox(props){
     },[name]);
 
     const onClick = ()=>{
-        setNum(num+1);
+        console.log(num);
     }
     
     return <div>
         <div>num = ${num}</div>
         <div>name = ${name}</div>
         <div>age = ${age}</div>
-        <button> click me !</button>
+        <button onClick={onClick}> click me !</button>
     </div>
     
 }

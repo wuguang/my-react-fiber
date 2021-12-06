@@ -1,3 +1,5 @@
+let eventProxy = [];
+
 function getDomFromJsx(jsx){
     //将jsx转化成 dom节点，直接渲染到界面上
     //递归渲染
@@ -10,8 +12,9 @@ function getDomFromJsx(jsx){
             if(k === 'class'){
                 dom.setAttribute('className',props[k]);
             }else if(reg.test(k)){
+                let eventFun = props[k];
                 //注册事件直接注册到dom
-
+                dom.addEventListener(k.slice(2).toLocaleLowerCase(),eventFun,false);
             }else if(k !== 'children'){
                 dom.setAttribute(k,props[k]);
             }
@@ -42,6 +45,8 @@ let ReactDom = {
 
         //root.innerHTML = JSON.stringify(jsx);
         root.appendChild(dom);
+
+        //更新alternate ......
     }
 }
 
