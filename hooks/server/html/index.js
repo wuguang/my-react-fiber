@@ -19,17 +19,16 @@ function myBox(props){
         setAge(age+1);
     },[name]);
 
-    const onClick = ()=>{
-        console.log(num);
+    const btnClick = ()=>{
+        setNum(num+1);
     }
     
     return <div>
         <div>num = ${num}</div>
         <div>name = ${name}</div>
         <div>age = ${age}</div>
-        <button onClick={onClick}> click me !</button>
+        <button onClick={btnClick}> click me !</button>
     </div>
-    
 }
 
 //假装 react渲染

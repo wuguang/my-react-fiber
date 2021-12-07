@@ -1,3 +1,4 @@
+import {updateFiber} from './hooks.js';
 let eventProxy = [];
 
 function getDomFromJsx(jsx){
@@ -36,17 +37,31 @@ function getDomFromJsx(jsx){
     }
 }
 
+let topRoot = null;
+let topType = null;
+
 let ReactDom = {
     render:(fun,root)=>{
+
+        //缓存变量
+        //root\fun
+
+        if(!topRoot){
+            topRoot = root;
+            topType = fun;
+        }else{
+            root = topRoot;
+            fun = topType;
+        }
+        
+        
         let jsx = fun();
         console.log(JSON.stringify(jsx));
-        let dom = getDomFromJsx(jsx)
-
-
-        //root.innerHTML = JSON.stringify(jsx);
+        let dom = getDomFromJsx(jsx);
+        //先清空在装载内容
+        root.innerHTML = '';
         root.appendChild(dom);
-
-        //更新alternate ......
+        updateFiber(fun);
     }
 }
 

@@ -155,8 +155,122 @@ function updateWorkInProgressHook() {
 function updateReducer(reducer, initialArg, init) {
     let hook = updateWorkInProgressHook();
     let queue = hook.queue;
+	//更新上次的reducer！！！
+	//挡前hook的queue
+    queue.lastRenderedReducer = reducer;
 
-    let dispatch = queue.dispatch;
+    let current = currentHook; // The last rebase update that is NOT part of the base state.
+    let baseQueue = current.baseQueue; // The last pending update that hasn't been processed yet.
+    let pendingQueue = queue.pending;
+
+    if (pendingQueue !== null) {
+      // We have new updates that haven't been processed yet.
+      // We'll add them to the base queue.
+      if (baseQueue !== null) {
+        // Merge the pending queue and the base queue.
+        var baseFirst = baseQueue.next;
+        var pendingFirst = pendingQueue.next;
+        baseQueue.next = pendingFirst;
+        pendingQueue.next = baseFirst;
+      }
+
+      {
+        if (current.baseQueue !== baseQueue) {
+          // Internal invariant that should never happen, but feasibly could in
+          // the future if we implement resuming, or some form of that.
+          error('Internal error: Expected work-in-progress queue to be a clone. ' + 'This is a bug in React.');
+        }
+      }
+
+      current.baseQueue = baseQueue = pendingQueue;
+      queue.pending = null;
+    }
+
+    if (baseQueue !== null) {
+      // We have a queue to process.
+      var first = baseQueue.next;
+      var newState = current.baseState;
+      var newBaseState = null;
+      var newBaseQueueFirst = null;
+      var newBaseQueueLast = null;
+      var update = first;
+
+      do {
+        var updateLane = update.lane;
+
+        if (!isSubsetOfLanes(renderLanes, updateLane)) {
+          // Priority is insufficient. Skip this update. If this is the first
+          // skipped update, the previous update/state is the new base
+          // update/state.
+          var clone = {
+            lane: updateLane,
+            action: update.action,
+            eagerReducer: update.eagerReducer,
+            eagerState: update.eagerState,
+            next: null
+          };
+
+          if (newBaseQueueLast === null) {
+            newBaseQueueFirst = newBaseQueueLast = clone;
+            newBaseState = newState;
+          } else {
+            newBaseQueueLast = newBaseQueueLast.next = clone;
+          } // Update the remaining priority in the queue.
+          // TODO: Don't need to accumulate this. Instead, we can remove
+          // renderLanes from the original lanes.
+
+
+          currentlyRenderingFiber$1.lanes = mergeLanes(currentlyRenderingFiber$1.lanes, updateLane);
+          markSkippedUpdateLanes(updateLane);
+        } else {
+          // This update does have sufficient priority.
+          if (newBaseQueueLast !== null) {
+            var _clone = {
+              // This update is going to be committed so we never want uncommit
+              // it. Using NoLane works because 0 is a subset of all bitmasks, so
+              // this will never be skipped by the check above.
+              lane: NoLane,
+              action: update.action,
+              eagerReducer: update.eagerReducer,
+              eagerState: update.eagerState,
+              next: null
+            };
+            newBaseQueueLast = newBaseQueueLast.next = _clone;
+          } // Process this update.
+
+
+          if (update.eagerReducer === reducer) {
+            // If this update was processed eagerly, and its reducer matches the
+            // current reducer, we can use the eagerly computed state.
+            newState = update.eagerState;
+          } else {
+            var action = update.action;
+            newState = reducer(newState, action);
+          }
+        }
+
+        update = update.next;
+      } while (update !== null && update !== first);
+
+      if (newBaseQueueLast === null) {
+        newBaseState = newState;
+      } else {
+        newBaseQueueLast.next = newBaseQueueFirst;
+      } // Mark that the fiber performed work, but only if the new state is
+      // different from the current state.
+
+
+      if (!objectIs(newState, hook.memoizedState)) {
+        markWorkInProgressReceivedUpdate();
+      }
+
+      hook.memoizedState = newState;
+      hook.baseState = newBaseState;
+      hook.baseQueue = newBaseQueueLast;
+      queue.lastRenderedState = newState;
+    }
+
+    var dispatch = queue.dispatch;
     return [hook.memoizedState, dispatch];
 }
 
