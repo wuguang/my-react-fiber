@@ -15,7 +15,6 @@ let workInProgressHook = null;
 let ReactCurrentDispatcher = {current:null};
 
 
-
 export function updateFiber(type){
 
 	currentlyRenderingFiber$1.type = type;
@@ -79,8 +78,10 @@ function is(x, y) {
 function scheduleUpdateOnFiber(){
 	//发起调度
 	//1)异步执行
-	//2)
-	ReactDom.render();
+    setTimeout(()=>{
+        ReactDom.render();
+    },0);
+	
 }
 
 
@@ -156,6 +157,23 @@ function updateReducer(reducer, initialArg, init) {
     let hook = updateWorkInProgressHook();
     let queue = hook.queue;
 
+    //强制的更新方法
+    //更新状态到memoizedState上
+    //合并queue里的值到 memoizedState里
+    let newState = hook.memoizedState;
+    let firstUpdate = queue.pending && queue.pending.next;
+    if(firstUpdate){
+        do{
+            newState = reducer(newState,firstUpdate.action);
+            //递归遍历环转链表，直到第一个和最后相同
+            firstUpdate = firstUpdate.next; 
+        }while(firstUpdate!==queue.pending);
+    }
+
+    //清空hook queue
+    hook.memoizedState = newState;
+    hook.queue.pending = null;
+
     let dispatch = queue.dispatch;
     return [hook.memoizedState, dispatch];
 }
@@ -165,6 +183,7 @@ function updateState(initialState) {
 }
 
 function updateEffect(){
+    
     return [];
 }
 

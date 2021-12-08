@@ -27,7 +27,7 @@ function myBox(props){
         <div>num = ${num}</div>
         <div>name = ${name}</div>
         <div>age = ${age}</div>
-        <button onClick={btnClick}> click me !</button>
+        <button onClick={btnClick}> num add 1 </button>
     </div>
 }
 
