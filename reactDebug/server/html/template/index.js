@@ -110,4 +110,23 @@ function TestHooks(){
 }
 
 
-ReactDom.render(<Main/>,root);
+function Test(){
+    const [count,setCount] = useEffect(0);
+
+    useEffect(()=>{
+        console.log(11111);
+        return ()=>{
+            console.log(' i am return~~~');
+        }
+    },[count]);
+
+
+    setTimeout(()=>{
+        setCount(count+1);
+    },1000);
+
+    //setCount(count ++);
+    return <div>{count}</div>
+}
+
+ReactDom.render(<Test/>,root);
