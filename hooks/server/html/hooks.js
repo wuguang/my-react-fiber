@@ -8,12 +8,13 @@ let currentlyRenderingFiber$1 ={
 	memoizedState:null,
 	//指向已构建好的，另一个自己，
 	//双缓冲
-	alternate:null
+	alternate:null,
+    updateQueue: null,
 };
 //当前正在使用的hook,全局对象
 let workInProgressHook = null;
 let ReactCurrentDispatcher = {current:null};
-
+let objectIs = typeof Object.is === 'function' ? Object.is : is;
 
 export function updateFiber(type){
 
@@ -62,7 +63,7 @@ function dispatchAction(fiber, queue, action) {
         const currentState = queue.lastRenderedState;  
         //期望更新后的状态,action是最后一次的             
         const eagerState = lastRenderedReducer(currentState, action); 
-        let objectIs = typeof Object.is === 'function' ? Object.is : is;
+        
         if (objectIs(eagerState, currentState)) {                           
            return 
         }    
@@ -95,6 +96,7 @@ function mountWorkInProgressHook() {
         next: null
     };
 
+    //是不是第一个hook,直接挂载还是 挂链上
     if (workInProgressHook === null) {
         //初始化挂载hook
         currentlyRenderingFiber$1.memoizedState = hook;
@@ -139,6 +141,68 @@ function mountState(initialState) {
 //上次的第一个hook
 let currentHook = null;
 function updateWorkInProgressHook() {
+
+    //上棵树---对应的下一个hook
+    let nextCurrentHook = null;
+    if (currentHook === null) {
+        const current = currentlyRenderingFiber$1.alternate;
+        if (current !== null) {
+            nextCurrentHook = current.memoizedState;
+        } else {
+            nextCurrentHook = null;
+        }
+    } else {
+        nextCurrentHook = currentHook.next;
+    }
+
+    //获取当前树的 --下一个hook!!!
+    let nextWorkInProgressHook = null;
+    if (workInProgressHook === null) {
+        //第一个
+        nextWorkInProgressHook = currentlyRenderingFiber$1.memoizedState;
+    } else {
+        //当前的下一个
+        nextWorkInProgressHook = workInProgressHook.next;
+    }
+
+    if (nextWorkInProgressHook !== null) {
+        // 更新当前hook值  workInProgressHook、currentHook
+
+        workInProgressHook = nextWorkInProgressHook;
+        nextWorkInProgressHook = workInProgressHook.next;
+    
+        currentHook = nextCurrentHook;
+    } else {
+        // Clone from the current hook.
+        //当前树 currentlyRenderingFiber$1.memoizedState 没有构建完成
+        //当前currentlyRenderingFiber$1.memoizedState 为空,从旧的树中复制
+    
+        if (nextCurrentHook === null) {
+            throw new Error('Rendered more hooks than during the previous render.');
+        }
+    
+        //上棵树，对应当前hook 
+        currentHook = nextCurrentHook;
+
+        //新建hook
+        const newHook = {
+            memoizedState: currentHook.memoizedState,
+            baseState: currentHook.baseState,
+            baseQueue: currentHook.baseQueue,
+            queue: currentHook.queue,
+            next: null,
+        };
+    
+        if (workInProgressHook === null) {
+            // This is the first hook in the list.
+            currentlyRenderingFiber.memoizedState = workInProgressHook = newHook;
+        } else {
+            // Append to the end of the list.
+            workInProgressHook = workInProgressHook.next = newHook;
+        }
+    }
+
+    /*
 	//这里和源码逻辑不一致...
     if(workInProgressHook === null){
 		workInProgressHook = currentlyRenderingFiber$1.memoizedState;
@@ -150,6 +214,8 @@ function updateWorkInProgressHook() {
 		//上个fiber上引用hook
 		currentHook = currentHook.next;
 	}
+    */
+
     return workInProgressHook;
 }
 
@@ -186,13 +252,15 @@ function updateEffect(create,deps){
     return updateEffectImpl(create, deps);
 }
 
+//更新阶段 effect的执行
 function updateEffectImpl(create,deps){
     //取得当前hook
     let hook = updateWorkInProgressHook();
     let nextDeps = deps === undefined ? null : deps;
     let destroy = undefined;
-    //currentHook 对应上次的hook
+    //currentHook 对应上次的(current) hook
     if (currentHook !== null) {
+        //每次 effect 记录在 hook 的 memoizedState 属性中
         let prevEffect = currentHook.memoizedState;
         destroy = prevEffect.destroy;
 
@@ -221,32 +289,35 @@ function areHookInputsEqual(nextDeps, prevDeps) {
     return true;
 }
 
-function mountEffect(){
+function mountEffect(create, deps){
     return mountEffectImpl(create, deps);
 }
 
-function mountEffectImpl(){
+function mountEffectImpl(create, deps){
+    //创建自己的 effectHook
     let hook = mountWorkInProgressHook();
     let nextDeps = deps === undefined ? null : deps;
     //添加flag
     //currentlyRenderingFiber$1.flags |= fiberFlags;
     //返回当前链表,挂载在hook.memoizedState上
     //第一次！！mount阶段!!
+    //挂载到hook自己的 memoizedState 
+    //【hook】 !!!!
     hook.memoizedState = pushEffect( create, undefined, nextDeps);
 }
 
-
 function pushEffect(create, destroy, deps) {
+    //new 一个新的 effect 
     let effect = {
         create: create,
         destroy: destroy,
         deps: deps,
-        // Circular
         next: null
     };
+
     //当前fiber的updateQueue
     let componentUpdateQueue = currentlyRenderingFiber$1.updateQueue;
-
+    //第一次建立副作用 链表 
     if (componentUpdateQueue === null) {
         componentUpdateQueue = {
             lastEffect: null
@@ -255,18 +326,26 @@ function pushEffect(create, destroy, deps) {
         //effect和自己建立环状链表
         componentUpdateQueue.lastEffect = effect.next = effect;
     } else {
+        //添加置effect环
+        //如果为空，这是一个，不太可能出现的情况？？？
+        //重新如第一次一样，加入一个自己组成的环状链表
         let lastEffect = componentUpdateQueue.lastEffect;
         if (lastEffect === null) {
             componentUpdateQueue.lastEffect = effect.next = effect;
         } else {
             //环状链表操作
             //2进一出!!!!
+            //保存第一个
             let firstEffect = lastEffect.next;
+            //上一次的lastEffect对象指向 effect
             lastEffect.next = effect;
+            //当前指向第一个effect
             effect.next = firstEffect;
-            componentUpdateQueue.lastEffect = effect;
+            //我成为最后一个
+            
         }
     }
+    //返回当前 effect
     return effect;
 }
 
