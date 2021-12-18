@@ -182,17 +182,99 @@ function updateState(initialState) {
     return updateReducer(basicStateReducer);
 }
 
-function updateEffect(){
-    
-    return [];
+function updateEffect(create,deps){
+    return updateEffectImpl(create, deps);
+}
+
+function updateEffectImpl(create,deps){
+    //取得当前hook
+    let hook = updateWorkInProgressHook();
+    let nextDeps = deps === undefined ? null : deps;
+    let destroy = undefined;
+    //currentHook 对应上次的hook
+    if (currentHook !== null) {
+        let prevEffect = currentHook.memoizedState;
+        destroy = prevEffect.destroy;
+
+        if (nextDeps !== null) {
+            let prevDeps = prevEffect.deps;
+            //相等的话，直接pushEffect 然后return
+            if (areHookInputsEqual(nextDeps, prevDeps)) {
+                pushEffect(create, destroy, nextDeps);
+                return;
+            }
+        }
+    }
+    //currentlyRenderingFiber$1.flags |= fiberFlags;
+    //还是第一个式的保存
+    hook.memoizedState = pushEffect(create, destroy, nextDeps);
+}
+
+//判断deps是否一致，是否要更新
+function areHookInputsEqual(nextDeps, prevDeps) {
+    for (var i = 0; i < prevDeps.length && i < nextDeps.length; i++) {
+        if (objectIs(nextDeps[i], prevDeps[i])) {
+          continue;
+        }
+        return false;
+    }
+    return true;
 }
 
 function mountEffect(){
-    return [];
+    return mountEffectImpl(create, deps);
+}
+
+function mountEffectImpl(){
+    let hook = mountWorkInProgressHook();
+    let nextDeps = deps === undefined ? null : deps;
+    //添加flag
+    //currentlyRenderingFiber$1.flags |= fiberFlags;
+    //返回当前链表,挂载在hook.memoizedState上
+    //第一次！！mount阶段!!
+    hook.memoizedState = pushEffect( create, undefined, nextDeps);
 }
 
 
+function pushEffect(create, destroy, deps) {
+    let effect = {
+        create: create,
+        destroy: destroy,
+        deps: deps,
+        // Circular
+        next: null
+    };
+    //当前fiber的updateQueue
+    let componentUpdateQueue = currentlyRenderingFiber$1.updateQueue;
 
+    if (componentUpdateQueue === null) {
+        componentUpdateQueue = {
+            lastEffect: null
+        };
+        currentlyRenderingFiber$1.updateQueue = componentUpdateQueue;
+        //effect和自己建立环状链表
+        componentUpdateQueue.lastEffect = effect.next = effect;
+    } else {
+        let lastEffect = componentUpdateQueue.lastEffect;
+        if (lastEffect === null) {
+            componentUpdateQueue.lastEffect = effect.next = effect;
+        } else {
+            //环状链表操作
+            //2进一出!!!!
+            let firstEffect = lastEffect.next;
+            lastEffect.next = effect;
+            effect.next = firstEffect;
+            componentUpdateQueue.lastEffect = effect;
+        }
+    }
+    return effect;
+}
+
+function createFunctionComponentUpdateQueue() {
+    return {
+        lastEffect: null
+    };
+}
 
 let HooksDispatcherOnMount = {
     useState:mountState,
