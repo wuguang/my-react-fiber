@@ -7,9 +7,12 @@ function myBox(props){
     let [name,setName] = useState('will');
     let [age,setAge] = useState(18);
 
+    //第一次初始化要执行，后续不执行了，
+    /*
     useEffect(()=>{
         setNum(num+1);
     },[]);
+    */
 
     useEffect(()=>{
         setName(name + '#' + num);

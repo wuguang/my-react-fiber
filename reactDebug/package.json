@@ -37,6 +37,7 @@
     "kill-port": "^1.6.1",
     "less": "^4.1.1",
     "less-loader": "^10.0.1",
+    "open": "^8.4.0",
     "ora": "^5.4.1",
     "style-loader": "^3.2.1",
     "ts-loader": "^9.2.4",

@@ -30,7 +30,6 @@ const setTimer03Jsx = React.createElement(React.Fragment, null, React.createElem
 
 function DiffSingle(){
     const [trigger,setTrigger] = useState(true);
-
     const oneJsx = (()=>{
         let arr = [{key:1,content:1},{key:2,content:2},{key:3,content:3},{key:4,content:4}];
         return arr.map(item=>{
@@ -42,6 +41,10 @@ function DiffSingle(){
     const clickFun = ()=>{
         setTigger(!trigger);
     }
+
+    useEffect(()=>{
+        console.log(`trigger ~~~~ = ${trigger}`);
+    },[]);
 
     return <div>
         <div id="diff-container">

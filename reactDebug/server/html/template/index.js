@@ -6,7 +6,6 @@ const { useEffect , useState , useRef , useMemo  } = React;
 
 //import ReactDom  from './react-dom/index.js';
 //import React,{ useEffect , useState , useRef , useMemo  } from './react/index.js'
-
 const root = document.getElementById("react-fiber-root");
 
 
@@ -20,6 +19,10 @@ function DiffSingle(){
         });
     })();
     const twoJsx = <p>I am signle one ~~ </p>
+
+    useEffect(()=>{
+        console.log(`~~~trigger = ${trigger}`);
+    },[]);
 
     const clickFun = ()=>{
         setTrigger(!trigger);
@@ -83,10 +86,12 @@ function Test(){
         setCount(count+1);
     },1000);
 
+
+
     //setCount(count ++);
     return <div>{count}</div>
 }
 
-ReactDom.render(<Test/>,root);
+//ReactDom.render(<Test/>,root);
 
 ReactDom.render(<DiffSingle/>, root);

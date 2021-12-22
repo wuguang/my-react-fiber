@@ -76,15 +76,43 @@ function is(x, y) {
     return x === y && (x !== 0 || 1 / x === 1 / y) || x !== x && y !== y ;
 }
 
-function scheduleUpdateOnFiber(){
-	//发起调度
-	//1)异步执行
-    setTimeout(()=>{
-        ReactDom.render();
-    },0);
-	
+//虚假的commitRoot
+//执行effect
+//更新updateQueue 等等
+//准备第一次更新
+function commitRoot(){
+    //effect是否要执行
+    //hook.queue 是否要更新
+    //此hook为hook链表
+    //参见20591
+    //function commitHookEffectListMount(tag, finishedWork) {
+    commitHookEffectListMount(currentlyRenderingFiber$1);
+    // 执行副作用  
 }
 
+//执行副作用 EffectList
+function commitHookEffectListMount(currentlyRenderingFiber$1){
+    //currentlyRenderingFiber$1 当前的Fiber
+    
+}
+
+let isScheduleUpdateing = false;
+function scheduleUpdateOnFiber(){
+    //执行effect
+    //更新updateQueue 等等
+    //准备第一次更新
+    commitRoot();
+
+	//发起调度
+	//1)异步执行
+    //同步任务在外面一起做
+    isScheduleUpdateing = true;
+
+    setTimeout(()=>{
+        ReactDom.render();
+        isScheduleUpdateing = false;
+    },0);
+}
 
 //new 一个 hook
 function mountWorkInProgressHook() {
@@ -280,13 +308,17 @@ function updateEffectImpl(create,deps){
 
 //判断deps是否一致，是否要更新
 function areHookInputsEqual(nextDeps, prevDeps) {
-    for (var i = 0; i < prevDeps.length && i < nextDeps.length; i++) {
-        if (objectIs(nextDeps[i], prevDeps[i])) {
-          continue;
+    try{
+        for (var i = 0; i < prevDeps.length && i < nextDeps.length; i++) {
+            if (objectIs(nextDeps[i], prevDeps[i])) {
+              continue;
+            }
+            return false;
         }
-        return false;
+        return true;
+    }catch(e){
+        return true;
     }
-    return true;
 }
 
 function mountEffect(create, deps){
