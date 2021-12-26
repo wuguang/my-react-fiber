@@ -1,4 +1,5 @@
-import {updateFiber} from './hooks.js';
+import {updateFiber,scheduleUpdateOnFiber} from './hooks.js';
+import React from './react.js';
 let eventProxy = [];
 
 function getDomFromJsx(jsx){
@@ -40,29 +41,29 @@ function getDomFromJsx(jsx){
 let topRoot = null;
 let topType = null;
 
+let isFirst = false;
+
 let ReactDom = {
-    render:(fun,root)=>{
-
-        //缓存变量
-        //root\fun
-
-        if(!topRoot){
-            topRoot = root;
-            topType = fun;
-        }else{
-            root = topRoot;
-            fun = topType;
-        }
-        
-        
-        let jsx = fun();
-        console.log(JSON.stringify(jsx));
-        let dom = getDomFromJsx(jsx);
-        //先清空在装载内容
-        root.innerHTML = '';
-        root.appendChild(dom);
-        updateFiber(fun);
+    render:(component,root)=>{
+        topRoot = root;
+        topType = component.type;
+        //
+        scheduleUpdateOnFiber();
     }
+}
+
+export function renderToPage(){
+    let jsx = topType();
+    let dom = getDomFromJsx(jsx);
+    if(!isFirst){
+        isFirst = true;
+        scheduleUpdateOnFiber();
+        return;
+    }
+    //先清空在装载内容
+    root.innerHTML = '';
+    root.appendChild(dom);
+    updateFiber(topType);
 }
 
 export default ReactDom;

@@ -88,7 +88,7 @@ function MyBox(props){
     },[]);
     */
 
-    useLayoutEffect(()=>{
+    useEffect(()=>{
         console.log(` ${n}--Effect [name] = ${name}---age change---`);
         setAge(age+1);
     },[num]);
@@ -120,36 +120,6 @@ function MyBox(props){
         <button onClick={btnClick}> num add 1 </button>
     </div>
 }
-
-/*
-render 1
-
-num = 0;
-
-
-n = 1;
-
-===>Async ==> Effect
-[] = 0;
-
-num = 1;
-
-render 2
-
-num = 1;
-n = 2;
-
-
-
-
-
-
-
-
-
-*/
-
-
 
 
 //假装 react渲染

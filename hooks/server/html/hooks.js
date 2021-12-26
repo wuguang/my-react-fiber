@@ -1,15 +1,11 @@
-import ReactDom from './react-dom.js';
+import {renderToPage} from './react-dom.js';
 
-var NoFlags$1 = 0;
+let NoFlags$1 = 0;
 // Represents whether effect should fire.
-
-var HasEffect = 1;
-
+let HasEffect = 1;
 // Represents the phase in which the effect (not the clean-up) fires.
-
-var Layout = 2;
-
-var Passive$1 = 4;
+let Layout = 2;
+let Passive$1 = 4;
 
 
 //特指该组件对应得fiber
@@ -81,7 +77,7 @@ function dispatchAction(fiber, queue, action) {
         }    
     }
     // 发起调度更新
-    scheduleUpdateOnFiber(fiber);   
+    scheduleUpdateOnFiber();   
 }
 
 function is(x, y) {
@@ -91,7 +87,7 @@ function is(x, y) {
 //执行effect
 //更新updateQueue 等等
 //准备第一次更新
-function commitRoot(){
+export function commitRoot(){
     //effect是否要执行
     //hook.queue 是否要更新
     //此hook为hook链表
@@ -99,15 +95,14 @@ function commitRoot(){
     //function commitHookEffectListMount(finishedWork) {
     // 异步执行 Effect
     //微任务 异步执行fiber_Effect_List
-    setTimeout(()=>{
-        commitHookEffectListMount(currentlyRenderingFiber$1);
-    },0);
+    Promise.resolve().then(()=>{
+        commitHookEffectListMount(HasEffect,currentlyRenderingFiber$1);
+    })
     //执行副作用  
 }
 
 //执行副作用 EffectList
-function commitHookEffectListMount( finishedWork) {
-    let tag = Layout | HasEffect;
+function commitHookEffectListMount(tag,finishedWork) {
     let updateQueue = finishedWork.updateQueue;
     let lastEffect = updateQueue !== null ? updateQueue.lastEffect : null;
 
@@ -146,7 +141,8 @@ function commitHookEffectListMount( finishedWork) {
 }
 
 let isScheduleUpdateing = false;
-function scheduleUpdateOnFiber(tag){
+
+export function scheduleUpdateOnFiber(){
     //执行effect
     //更新updateQueue 等等
     //准备第一次更新
@@ -160,11 +156,14 @@ function scheduleUpdateOnFiber(tag){
     Promise.resolve().then(res=>{
         if(!isScheduleUpdateing){
             isScheduleUpdateing = true;
-            ReactDom.render();
+            renderToPage();
             isScheduleUpdateing = false;
         }
     });
 }
+
+
+
 
 //new 一个 hook
 function mountWorkInProgressHook() {
@@ -329,6 +328,8 @@ function updateState(initialState) {
 }
 
 function updateEffect(create,deps){
+    //update hookFalgs = Passive$1
+
     return updateEffectImpl(Passive$1,create, deps);
 }
 
@@ -348,13 +349,15 @@ function updateEffectImpl(hookFlags,create,deps){
             let prevDeps = prevEffect.deps;
             //相等的话，直接pushEffect 然后return
             if (areHookInputsEqual(nextDeps, prevDeps)) {
+                //相等的话 hookFlags === Passive$1
                 pushEffect(hookFlags,create, destroy, nextDeps);
                 return;
             }
         }
     }
-    //currentlyRenderingFiber$1.flags |= fiberFlags;
     //还是第一个式的保存
+    //需要执行的 hookFlag HasEffect
+
     hook.memoizedState = pushEffect(HasEffect | hookFlags, create, destroy, nextDeps);
 }
 
@@ -390,9 +393,10 @@ function mountEffectImpl(hookFlags,create, deps){
     hook.memoizedState = pushEffect(HasEffect | hookFlags, create, undefined, nextDeps);
 }
 
-function pushEffect(create, destroy, deps) {
+function pushEffect(tag,create, destroy, deps) {
     //new 一个新的 effect 
     let effect = {
+        tag:tag,
         create: create,
         destroy: destroy,
         deps: deps,
@@ -426,7 +430,6 @@ function pushEffect(create, destroy, deps) {
             //当前指向第一个effect
             effect.next = firstEffect;
             //我成为最后一个
-            
         }
     }
     //返回当前 effect
