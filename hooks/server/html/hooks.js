@@ -1,5 +1,17 @@
 import ReactDom from './react-dom.js';
 
+var NoFlags$1 = 0;
+// Represents whether effect should fire.
+
+var HasEffect = 1;
+
+// Represents the phase in which the effect (not the clean-up) fires.
+
+var Layout = 2;
+
+var Passive$1 = 4;
+
+
 //特指该组件对应得fiber
 //构造虚假fiber对象
 let currentlyRenderingFiber$1 ={
@@ -76,7 +88,6 @@ function is(x, y) {
     return x === y && (x !== 0 || 1 / x === 1 / y) || x !== x && y !== y ;
 }
 
-//虚假的commitRoot
 //执行effect
 //更新updateQueue 等等
 //准备第一次更新
@@ -85,19 +96,57 @@ function commitRoot(){
     //hook.queue 是否要更新
     //此hook为hook链表
     //参见20591
-    //function commitHookEffectListMount(tag, finishedWork) {
-    commitHookEffectListMount(currentlyRenderingFiber$1);
-    // 执行副作用  
+    //function commitHookEffectListMount(finishedWork) {
+    // 异步执行 Effect
+    //微任务 异步执行fiber_Effect_List
+    setTimeout(()=>{
+        commitHookEffectListMount(currentlyRenderingFiber$1);
+    },0);
+    //执行副作用  
 }
 
 //执行副作用 EffectList
-function commitHookEffectListMount(currentlyRenderingFiber$1){
-    //currentlyRenderingFiber$1 当前的Fiber
-    
+function commitHookEffectListMount( finishedWork) {
+    let tag = Layout | HasEffect;
+    let updateQueue = finishedWork.updateQueue;
+    let lastEffect = updateQueue !== null ? updateQueue.lastEffect : null;
+
+    if (lastEffect !== null) {
+        let firstEffect = lastEffect.next;
+        let effect = firstEffect;
+
+        do {
+            //effet 的tag 是否包含 tag 
+            if ((effect.tag & tag) === tag) {
+            // Mount
+            let create = effect.create;
+            //执行 回调
+            effect.destroy = create();
+                //destroy 的报错信息
+                {
+                    let destroy = effect.destroy;
+                    if (destroy !== undefined && typeof destroy !== 'function') {
+                        let addendum = void 0;
+
+                        if (destroy === null) {
+                            addendum = ' You returned null. If your effect does not require clean ' + 'up, return undefined (or nothing).';
+                        } else if (typeof destroy.then === 'function') {
+                            addendum = '\n\nIt looks like you wrote useEffect(async () => ...) or returned a Promise. ' + 'Instead, write the async function inside your effect ' + 'and call it immediately:\n\n' + 'useEffect(() => {\n' + '  async function fetchData() {\n' + '    // You can await here\n' + '    const response = await MyAPI.getData(someId);\n' + '    // ...\n' + '  }\n' + '  fetchData();\n' + "}, [someId]); // Or [] if effect doesn't need props or state\n\n" + 'Learn more about data fetching with Hooks: https://reactjs.org/link/hooks-data-fetching';
+                        } else {
+                            addendum = ' You returned: ' + destroy;
+                        }
+
+                        error('An effect function must not return anything besides a function, ' + 'which is used for clean-up.%s', addendum);
+                    }
+                }
+            }
+            effect = effect.next;
+        } while (effect !== firstEffect);
+    }
 }
 
 let isScheduleUpdateing = false;
-function scheduleUpdateOnFiber(){
+function scheduleUpdateOnFiber(tag){
     //执行effect
     //更新updateQueue 等等
     //准备第一次更新
@@ -106,12 +155,15 @@ function scheduleUpdateOnFiber(){
 	//发起调度
 	//1)异步执行
     //同步任务在外面一起做
-    isScheduleUpdateing = true;
-
-    setTimeout(()=>{
-        ReactDom.render();
-        isScheduleUpdateing = false;
-    },0);
+    
+    //构建dom 
+    Promise.resolve().then(res=>{
+        if(!isScheduleUpdateing){
+            isScheduleUpdateing = true;
+            ReactDom.render();
+            isScheduleUpdateing = false;
+        }
+    });
 }
 
 //new 一个 hook
@@ -277,11 +329,11 @@ function updateState(initialState) {
 }
 
 function updateEffect(create,deps){
-    return updateEffectImpl(create, deps);
+    return updateEffectImpl(Passive$1,create, deps);
 }
 
 //更新阶段 effect的执行
-function updateEffectImpl(create,deps){
+function updateEffectImpl(hookFlags,create,deps){
     //取得当前hook
     let hook = updateWorkInProgressHook();
     let nextDeps = deps === undefined ? null : deps;
@@ -296,20 +348,20 @@ function updateEffectImpl(create,deps){
             let prevDeps = prevEffect.deps;
             //相等的话，直接pushEffect 然后return
             if (areHookInputsEqual(nextDeps, prevDeps)) {
-                pushEffect(create, destroy, nextDeps);
+                pushEffect(hookFlags,create, destroy, nextDeps);
                 return;
             }
         }
     }
     //currentlyRenderingFiber$1.flags |= fiberFlags;
     //还是第一个式的保存
-    hook.memoizedState = pushEffect(create, destroy, nextDeps);
+    hook.memoizedState = pushEffect(HasEffect | hookFlags, create, destroy, nextDeps);
 }
 
 //判断deps是否一致，是否要更新
 function areHookInputsEqual(nextDeps, prevDeps) {
     try{
-        for (var i = 0; i < prevDeps.length && i < nextDeps.length; i++) {
+        for (let i = 0; i < prevDeps.length && i < nextDeps.length; i++) {
             if (objectIs(nextDeps[i], prevDeps[i])) {
               continue;
             }
@@ -322,10 +374,10 @@ function areHookInputsEqual(nextDeps, prevDeps) {
 }
 
 function mountEffect(create, deps){
-    return mountEffectImpl(create, deps);
+    return mountEffectImpl(Passive$1, create, deps);
 }
 
-function mountEffectImpl(create, deps){
+function mountEffectImpl(hookFlags,create, deps){
     //创建自己的 effectHook
     let hook = mountWorkInProgressHook();
     let nextDeps = deps === undefined ? null : deps;
@@ -335,7 +387,7 @@ function mountEffectImpl(create, deps){
     //第一次！！mount阶段!!
     //挂载到hook自己的 memoizedState 
     //【hook】 !!!!
-    hook.memoizedState = pushEffect( create, undefined, nextDeps);
+    hook.memoizedState = pushEffect(HasEffect | hookFlags, create, undefined, nextDeps);
 }
 
 function pushEffect(create, destroy, deps) {
