@@ -2,7 +2,7 @@
 
 const ReactDom = window.ReactDom;
 const React = window.React;
-const { useEffect , useState , useRef , useMemo  } = React;
+const { useEffect , useState , useRef , useMemo ,useLayoutEffect } = React;
 
 //import ReactDom  from './react-dom/index.js';
 //import React,{ useEffect , useState , useRef , useMemo  } from './react/index.js'
@@ -71,27 +71,87 @@ function DiffArr(){
 }
 
 
-function Test(){
-    const [count,setCount] = useEffect(0);
+let n = 0;
+
+function MyBox(props){
+    let [num,setNum] = useState(0);
+    let [name,setName] = useState('will');
+    let [age,setAge] = useState(18);
+
+    //console.log(`n = ${++n}`);
+    //第一次初始化要执行，后续不执行了，
+
+    /*
+    useEffect(()=>{
+        console.log(` ${n}--Effect [] =  ${name}#${num}---name change---`);
+        setName(name + '#' + num);
+    },[]);
+    */
+
+    useLayoutEffect(()=>{
+        console.log(` ${n}--Effect [name] = ${name}---age change---`);
+        setAge(age+1);
+    },[num]);
+
+    /*
+    useEffect(()=>{
+        console.log(`[num] = ${num}`);
+        setName(name + '#' + num);
+    },[num]);
 
     useEffect(()=>{
-        console.log(11111);
-        return ()=>{
-            console.log(' i am return~~~');
-        }
-    },[count]);
+        console.log(`[name] = ${name}`);
+        setAge(age+1);
+    },[name]);
+    */
 
-
-    setTimeout(()=>{
-        setCount(count+1);
-    },1000);
-
-
-
-    //setCount(count ++);
-    return <div>{count}</div>
+    const btnClick = ()=>{
+        setNum(num+1);
+    }
+    
+    Promise.resolve('over').then(res=>{
+        console.log(`res = ${res}`);
+    });
+   
+    return <div id="my-container">
+        <div>num = ${num}</div>
+        <div>name = ${name}</div>
+        <div>age = ${age}</div>
+        <button onClick={btnClick}> num add 1 </button>
+    </div>
 }
 
-//ReactDom.render(<Test/>,root);
+/*
+render 1
 
-ReactDom.render(<DiffSingle/>, root);
+num = 0;
+
+
+n = 1;
+
+===>Async ==> Effect
+[] = 0;
+
+num = 1;
+
+render 2
+
+num = 1;
+n = 2;
+
+
+
+
+
+
+
+
+
+*/
+
+
+
+
+//假装 react渲染
+ReactDom.render(<MyBox />,root);
+
